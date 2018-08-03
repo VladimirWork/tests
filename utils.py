@@ -11,16 +11,20 @@ def run_async_method(method):
     loop.run_until_complete(method())
 
 
-async def pool_helper(pool_name=''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5)),
+async def pool_helper(pool_name=None,
                       path_to_genesis='/home/indy/docker_genesis'):
+    if not pool_name:
+        pool_name = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
     await pool.create_pool_ledger_config(pool_name, pool_config)
     pool_handle = await pool.open_pool_ledger(pool_name, pool_config)
     return pool_handle
 
 
-async def wallet_helper(wallet_id=''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5)),
+async def wallet_helper(wallet_id=None,
                         wallet_key=''):
+    if not wallet_id:
+        wallet_id = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))
     wallet_config = json.dumps({"id": wallet_id})
     wallet_credential = json.dumps({"key": wallet_key})
     await wallet.create_wallet(wallet_config, wallet_credential)

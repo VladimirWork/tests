@@ -1,7 +1,7 @@
 import json
 import string
 import random
-from indy import pool, wallet, ledger
+from indy import pool, wallet, ledger, anoncreds
 
 
 def run_async_method(method):
@@ -45,16 +45,20 @@ async def attrib_helper(pool_handle, wallet_handle, submitter_did, target_did, x
     return res
 
 
-async def schema_helper(pool_handle, wallet_handle, submitter_did, data):
-    req = await ledger.build_schema_request(submitter_did, data)
+async def schema_helper(pool_handle, wallet_handle, submitter_did):
+    schema_id, schema_json = await anoncreds.issuer_create_schema(submitter_did, 'schema1', '1.0',
+                                                                  json.dumps(["age", "sex", "height", "name"]))
+    req = await ledger.build_schema_request(submitter_did, schema_json)
     res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req)
-    return res
+    return schema_id, res
 
 
-async def cred_def_helper(pool_handle, wallet_handle, submitter_did, data):
-    req = await ledger.build_cred_def_request(submitter_did, data)
+async def cred_def_helper(pool_handle, wallet_handle, submitter_did, schema_json):
+    cred_def_id, cred_def_json = await anoncreds.issuer_create_and_store_credential_def(wallet_handle, submitter_did,
+                                                                                        schema_json, 'tag1', None, None)
+    req = await ledger.build_cred_def_request(submitter_did, cred_def_json)
     res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req)
-    return res
+    return cred_def_id, res
 
 
 async def get_nym_helper(pool_handle, wallet_handle, submitter_did, target_did):

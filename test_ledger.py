@@ -1,6 +1,6 @@
 from utils import *
 import pytest
-from indy import pool, did, anoncreds
+from indy import pool, did
 import hashlib
 
 

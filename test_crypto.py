@@ -4,7 +4,6 @@ from utils import wallet_helper
 from indy import pool, did, crypto
 
 
-@pytest.mark.skip('IS-641')
 @pytest.mark.asyncio
 async def test_crypto_returns_bytes():
     await pool.set_protocol_version(2)

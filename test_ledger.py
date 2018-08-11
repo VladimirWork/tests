@@ -1,6 +1,6 @@
 from utils import *
 import pytest
-from indy import pool, did, blob_storage
+from indy import pool, did
 import hashlib
 
 
@@ -101,3 +101,8 @@ async def test_send_and_get_revoc_reg_def_positive():
     assert res2['op'] == 'REPLY'
     print(res1)
     print(res2)
+
+
+@pytest.mark.asyncio
+async def test_send_and_get_revoc_reg_entry_positive():
+    pass

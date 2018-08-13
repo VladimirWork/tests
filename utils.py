@@ -80,6 +80,21 @@ async def revoc_reg_def_helper(pool_handle, wallet_handle, submitter_did, revoc_
     return revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json, res
 
 
+async def revoc_reg_entry_helper(pool_handle, wallet_handle, submitter_did, revoc_def_type, tag, cred_def_id, config_json):
+    tails_writer_config = json.dumps({'base_dir': 'tails', 'uri_pattern': ''})
+    tails_writer_handle = await blob_storage.open_writer('default', tails_writer_config)
+    revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json = \
+        await anoncreds.issuer_create_and_store_revoc_reg(wallet_handle, submitter_did, revoc_def_type, tag,
+                                                          cred_def_id, config_json, tails_writer_handle)
+    req = await ledger.build_revoc_reg_def_request(submitter_did, revoc_reg_def_json)
+    await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req)
+    req = await ledger.build_revoc_reg_entry_request(submitter_did, revoc_reg_def_id, revoc_def_type,
+                                                     revoc_reg_entry_json)
+    res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req))
+
+    return revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json, res
+
+
 async def get_nym_helper(pool_handle, wallet_handle, submitter_did, target_did):
     req = await ledger.build_get_nym_request(submitter_did, target_did)
     res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req)
@@ -110,6 +125,13 @@ async def get_cred_def_helper(pool_handle, wallet_handle, submitter_did, id_):
 
 async def get_revoc_reg_def_helper(pool_handle, wallet_handle, submitter_did, id_):
     req = await ledger.build_get_revoc_reg_def_request(submitter_did, id_)
+    res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req))
+
+    return res
+
+
+async def get_revoc_reg_helper(pool_handle, wallet_handle, submitter_did, id_, timestamp):
+    req = await ledger.build_get_revoc_reg_request(submitter_did, id_, timestamp)
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req))
 
     return res

@@ -14,8 +14,10 @@ async def test_connections_count():
     time.sleep(5)
     res1 = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, 'Th7MpTaRZVRYnPiabds81Y'))
     res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, 'EbP4aYNeTHL6q385GuVpRV'))
+    res3 = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, '4cU41vWW82ArfxJxHkzXPG'))
+    res4 = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, 'TWwCRQRZ2ZHMJFn9TzLp7W'))
     time.sleep(5)
     assert res1['op'] == 'REPLY'
     assert res2['op'] == 'REPLY'
-    print(res1)
-    print(res2)
+    assert res3['op'] == 'REPLY'
+    assert res4['op'] == 'REPLY'

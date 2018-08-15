@@ -11,8 +11,7 @@ def run_async_method(method):
     loop.run_until_complete(method())
 
 
-async def pool_helper(pool_name=None,
-                      path_to_genesis='/home/indy/docker_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
     if not pool_name:
         pool_name = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
@@ -22,12 +21,11 @@ async def pool_helper(pool_name=None,
     return pool_handle
 
 
-async def wallet_helper(wallet_id=None,
-                        wallet_key=''):
+async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_method='ARAGON2I_MOD'):
     if not wallet_id:
         wallet_id = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))
     wallet_config = json.dumps({"id": wallet_id})
-    wallet_credential = json.dumps({"key": wallet_key})
+    wallet_credential = json.dumps({"key": wallet_key, "key_derivation_method": wallet_key_derivation_method})
     await wallet.create_wallet(wallet_config, wallet_credential)
     wallet_handle = await wallet.open_wallet(wallet_config, wallet_credential)
 

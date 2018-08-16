@@ -4,11 +4,11 @@ import random
 from indy import pool, wallet, ledger, anoncreds, blob_storage
 
 
-def run_async_method(method):
+def run_async_method(method, *args, **kwargs):
 
     import asyncio
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(method())
+    loop.run_until_complete(method(*args, **kwargs))
 
 
 async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):

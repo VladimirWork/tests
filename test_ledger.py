@@ -1,6 +1,6 @@
 from utils import *
 import pytest
-from indy import pool, did
+from indy import pool, did, IndyError
 import hashlib
 import time
 
@@ -17,6 +17,26 @@ async def test_send_and_get_nym_positive():
     res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, test_did, test_did))
     assert res1['op'] == 'REPLY'
     assert res2['op'] == 'REPLY'
+    print(res1)
+    print(res2)
+
+
+@pytest.mark.parametrize('submitter_seed', ["{}",
+                                            json.dumps({"did": str('1111111111111111')}),
+                                            json.dumps({"seed": str('00000000000000000000000000000000')}),
+                                            ])
+@pytest.mark.parametrize('target_seed', ["{}"])
+@pytest.mark.asyncio
+async def test_send_and_get_nym_negative(submitter_seed, target_seed):
+    await pool.set_protocol_version(2)
+    pool_handle = await pool_helper()
+    wallet_handle = await wallet_helper()
+    test_did, test_vk = await did.create_and_store_my_did(wallet_handle, target_seed)
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, submitter_seed)
+    res1 = json.loads(await nym_helper(pool_handle, wallet_handle, trustee_did, test_did))
+    res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, test_did, test_did))
+    assert res1['op'] == 'REQNACK'
+    assert res2['result']['seqNo'] is None
     print(res1)
     print(res2)
 

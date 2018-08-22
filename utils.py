@@ -11,7 +11,7 @@ def run_async_method(method, *args, **kwargs):
     loop.run_until_complete(method(*args, **kwargs))
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/user/docker_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
     if not pool_name:
         pool_name = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))
     pool_config = json.dumps({"genesis_txn": path_to_genesis})

@@ -35,9 +35,12 @@ async def test_send_and_get_nym_negative(submitter_seed):
     wallet_handle = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, submitter_seed)
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    await nym_helper(pool_handle, wallet_handle, trustee_did, submitter_did)
     res1 = json.loads(await nym_helper(pool_handle, wallet_handle, submitter_did, target_did))
     res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, target_did, target_did))
-    assert res1['op'] == 'REQNACK'
+    assert res1['op'] == 'REJECT'
     assert res2['result']['seqNo'] is None
     print(res1)
     print(res2)

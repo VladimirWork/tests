@@ -98,15 +98,16 @@ async def test_send_and_get_attrib_negative(xhash, raw, enc, error):
         print(res2)
 
 
+@pytest.mark.parametrize('submitter_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
 @pytest.mark.asyncio
-async def test_send_and_get_schema_positive():
+async def test_send_and_get_schema_positive(submitter_role):
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
     wallet_handle = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    await nym_helper(pool_handle, wallet_handle, submitter_did, target_did, target_vk, None, 'TRUSTEE')
+    await nym_helper(pool_handle, wallet_handle, submitter_did, target_did, target_vk, None, submitter_role)
     schema_id, res = await schema_helper(pool_handle, wallet_handle, target_did)
     res1 = json.loads(res)
     res2 = json.loads(await get_schema_helper(pool_handle, wallet_handle, target_did, schema_id))

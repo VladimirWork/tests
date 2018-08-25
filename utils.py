@@ -15,7 +15,7 @@ def random_string(length):
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/user/docker_genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
@@ -51,9 +51,9 @@ async def attrib_helper(pool_handle, wallet_handle, submitter_did, target_did, x
     return res
 
 
-async def schema_helper(pool_handle, wallet_handle, submitter_did):
-    schema_id, schema_json = await anoncreds.issuer_create_schema(submitter_did, 'schema1', '1.0',
-                                                                  json.dumps(["age", "sex", "height", "name"]))
+async def schema_helper(pool_handle, wallet_handle, submitter_did, schema_name, schema_version, schema_attrs):
+    schema_id, schema_json = await anoncreds.issuer_create_schema(submitter_did, schema_name, schema_version,
+                                                                  schema_attrs)
     req = await ledger.build_schema_request(submitter_did, schema_json)
     res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req)
 

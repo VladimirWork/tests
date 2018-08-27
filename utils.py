@@ -15,7 +15,7 @@ def random_string(length):
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/user/docker_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
@@ -33,7 +33,12 @@ async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_met
     await wallet.create_wallet(wallet_config, wallet_credential)
     wallet_handle = await wallet.open_wallet(wallet_config, wallet_credential)
 
-    return wallet_handle
+    return wallet_handle, wallet_config, wallet_credential
+
+
+async def wallet_destructor(wallet_handle, wallet_config, wallet_credential):
+    await wallet.close_wallet(wallet_handle)
+    await wallet.delete_wallet(wallet_config, wallet_credential)
 
 
 async def nym_helper(pool_handle, wallet_handle, submitter_did, target_did,

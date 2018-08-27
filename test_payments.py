@@ -12,7 +12,7 @@ async def test_payments_state_proofs():
     init = getattr(library, initializer_name)
     init()
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     address = await payment.create_payment_address(wallet_handle, 'sov', json.dumps(
         {"seed": str('00000000000000000000000000000000')}))
 

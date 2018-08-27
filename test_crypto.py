@@ -7,7 +7,7 @@ from indy import pool, did, crypto
 @pytest.mark.asyncio
 async def test_auth_crypt_decrypt():
     await pool.set_protocol_version(2)
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     test_did, test_vk = await did.create_and_store_my_did(wallet_handle, "{}")
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {"seed": str('000000000000000000000000Trustee1')}))
@@ -23,7 +23,7 @@ async def test_auth_crypt_decrypt():
 @pytest.mark.asyncio
 async def test_anon_crypt_decrypt():
     await pool.set_protocol_version(2)
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     test_did, test_vk = await did.create_and_store_my_did(wallet_handle, "{}")
     msg = b'byte message'
     encrypted_message = await crypto.anon_crypt(test_vk, msg)

@@ -12,7 +12,7 @@ import base58
 async def test_send_and_get_nym_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     writer_did, writer_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     reader_did, reader_vk = await did.create_and_store_my_did(wallet_handle, '{}')
@@ -42,7 +42,7 @@ async def test_send_and_get_nym_positive(writer_role, reader_role):
 async def test_send_and_get_nym_negative(submitter_seed):
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, submitter_seed)
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
@@ -69,7 +69,7 @@ async def test_send_and_get_nym_negative(submitter_seed):
 async def test_send_and_get_attrib_positive(xhash, raw, enc):
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -95,7 +95,7 @@ async def test_send_and_get_attrib_positive(xhash, raw, enc):
 async def test_send_and_get_attrib_negative(xhash, raw, enc, error):
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -121,7 +121,7 @@ async def test_send_and_get_attrib_negative(xhash, raw, enc, error):
 async def test_send_and_get_schema_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     writer_did, writer_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     reader_did, reader_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
@@ -148,7 +148,7 @@ async def test_send_and_get_schema_positive(writer_role, reader_role):
 async def test_send_and_get_cred_def_positive():
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -171,7 +171,7 @@ async def test_send_and_get_cred_def_positive():
 async def test_send_and_get_revoc_reg_def_positive():
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -197,7 +197,7 @@ async def test_send_and_get_revoc_reg_def_positive():
 async def test_send_and_get_revoc_reg_entry_positive():
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
-    wallet_handle = await wallet_helper()
+    wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))

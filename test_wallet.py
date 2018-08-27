@@ -1,9 +1,6 @@
-from indy import pool, wallet
-import random
-import string
-import json
 import time
 import pytest
+from utils import *
 
 
 @pytest.mark.asyncio
@@ -38,3 +35,18 @@ async def test_key_derivation_algorithm():
     assert(t2_create_delta < t1_create_delta)
     assert(t2_open_delta < t1_open_delta)
     assert(t2_delete_delta < t1_delete_delta)
+
+
+@pytest.mark.parametrize('seed', [None, '', '0000000000000000000000000000seed'])
+@pytest.mark.asyncio
+async def test_generate_wallet_key(seed):
+    await pool.set_protocol_version(2)
+    if not seed:
+        key_config = None
+    else:
+        key_config = json.dumps({'seed': seed})
+    wk = await wallet.generate_wallet_key(key_config)
+    wallet_handle, wallet_config, wallet_credential = await wallet_helper(None, wk, 'RAW')
+    print('\n', wk)
+    await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
+    assert wk is not None

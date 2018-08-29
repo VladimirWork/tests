@@ -15,7 +15,7 @@ def random_string(length):
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/indy-node/scripts/ansible/pool_transactions_genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})

@@ -1,6 +1,54 @@
 import time
 import pytest
 from utils import *
+from indy import wallet
+import os
+
+
+@pytest.mark.parametrize('wallet_id, wallet_key, wallet_key_derivation_method', [
+    (random_string(1), random_string(10), 'ARAGON2I_MOD'),
+    (random_string(10), random_string(1), 'ARAGON2I_INT')
+])
+@pytest.mark.asyncio
+async def test_wallet_create_open_positive(wallet_id, wallet_key, wallet_key_derivation_method):
+    wallet_handle = await wallet_helper(wallet_id, wallet_key, wallet_key_derivation_method)
+    assert wallet_handle
+
+
+@pytest.mark.asyncio
+async def test_wallet_close_delete_positive():
+    wallet_handle, wallet_config, wallet_credential = await wallet_helper()
+    await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
+    assert True
+
+
+@pytest.mark.parametrize('exp_config, imp_config', [
+    (json.dumps({'path': './wallet', 'key': '', 'key_derivation_method': 'ARAGON2I_MOD'}),
+     json.dumps({'path': './wallet', 'key': ''}))
+])
+@pytest.mark.asyncio
+async def test_wallet_export_import_positive(exp_config, imp_config):
+    wallet_handle, wallet_config, wallet_credential = await wallet_helper()
+    await wallet.export_wallet(wallet_handle, exp_config)
+    await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
+    await wallet.import_wallet(wallet_config, wallet_credential, imp_config)
+    os.remove('./wallet')
+    assert True
+
+
+@pytest.mark.asyncio
+async def test_wallet_create_open_negative():
+    pass
+
+
+@pytest.mark.asyncio
+async def test_wallet_close_delete_negative():
+    pass
+
+
+@pytest.mark.asyncio
+async def test_wallet_export_import_negative():
+    pass
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,7 @@
 import json
 import string
 import random
+import base58
 from indy import pool, wallet, ledger, anoncreds, blob_storage
 
 
@@ -13,6 +14,16 @@ def run_async_method(method, *args, **kwargs):
 
 def random_string(length):
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
+
+
+def random_did_and_json():
+    return base58.b58encode(random_string(16)).decode(),\
+           json.dumps({'did': base58.b58encode(random_string(16)).decode()})
+
+
+def random_seed_and_json():
+    return base58.b58encode(random_string(23)).decode(),\
+           json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
 async def pool_helper(pool_name=None, path_to_genesis='/home/indy/indy-node/scripts/ansible/pool_transactions_genesis'):

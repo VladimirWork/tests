@@ -28,15 +28,15 @@ async def test_send_and_get_nym_positive(writer_role, reader_role):
     res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, target_did, target_did))
 
     assert res1['op'] == 'REPLY'
-    assert res2['op'] == 'REPLY'
+    assert res2['result']['seqNo'] is not None
 
     print(res1)
     print(res2)
 
 
 @pytest.mark.parametrize('submitter_seed', ['{}',
-                                            json.dumps({'did': base58.b58encode(random_string(16)).decode()}),
-                                            json.dumps({'seed': base58.b58encode(random_string(23)).decode()}),
+                                            random_did_and_json()[1],
+                                            random_seed_and_json()[1],
                                             ])
 @pytest.mark.asyncio
 async def test_send_and_get_nym_negative(submitter_seed):

@@ -144,6 +144,11 @@ async def test_send_and_get_schema_positive(writer_role, reader_role):
 
 
 @pytest.mark.asyncio
+async def test_send_and_get_schema_negative():
+    pass
+
+
+@pytest.mark.asyncio
 async def test_send_and_get_cred_def_positive():
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
@@ -164,6 +169,11 @@ async def test_send_and_get_cred_def_positive():
     assert res2['op'] == 'REPLY'
     print(res1)
     print(res2)
+
+
+@pytest.mark.asyncio
+async def test_send_and_get_cred_def_negative():
+    pass
 
 
 @pytest.mark.asyncio
@@ -193,6 +203,11 @@ async def test_send_and_get_revoc_reg_def_positive():
 
 
 @pytest.mark.asyncio
+async def test_send_and_get_revoc_reg_def_negative():
+    pass
+
+
+@pytest.mark.asyncio
 async def test_send_and_get_revoc_reg_entry_positive():
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
@@ -217,3 +232,8 @@ async def test_send_and_get_revoc_reg_entry_positive():
     assert res2['op'] == 'REPLY'
     print(res1)
     print(res2)
+
+
+@pytest.mark.asyncio
+async def test_send_and_get_revoc_reg_entry_negative():
+    pass

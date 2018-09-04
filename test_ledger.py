@@ -3,7 +3,6 @@ import pytest
 from indy import pool, did, IndyError
 import hashlib
 import time
-import base58
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB'])

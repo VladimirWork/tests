@@ -36,7 +36,7 @@ async def pool_helper(pool_name=None, path_to_genesis='/home/indy/indy-node/scri
     return pool_handle
 
 
-async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_method='ARAGON2I_INT'):
+async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_method='ARGON2I_INT'):
     if not wallet_id:
         wallet_id = random_string(5)
     wallet_config = json.dumps({"id": wallet_id})

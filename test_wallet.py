@@ -6,8 +6,8 @@ import os
 
 
 @pytest.mark.parametrize('wallet_id, wallet_key, wallet_key_derivation_method', [
-    (random_string(1), random_string(10), 'ARAGON2I_MOD'),
-    (random_string(10), random_string(1), 'ARAGON2I_INT')
+    (random_string(1), random_string(10), 'ARGON2I_MOD'),
+    (random_string(10), random_string(1), 'ARGON2I_INT')
 ])
 @pytest.mark.asyncio
 async def test_wallet_create_open_positive(wallet_id, wallet_key, wallet_key_derivation_method):
@@ -23,7 +23,7 @@ async def test_wallet_close_delete_positive():
 
 
 @pytest.mark.parametrize('exp_config, imp_config', [
-    (json.dumps({'path': './wallet', 'key': '', 'key_derivation_method': 'ARAGON2I_MOD'}),
+    (json.dumps({'path': './wallet', 'key': '', 'key_derivation_method': 'ARGON2I_MOD'}),
      json.dumps({'path': './wallet', 'key': ''}))
 ])
 @pytest.mark.asyncio
@@ -55,7 +55,7 @@ async def test_wallet_export_import_negative():
 async def test_key_derivation_algorithm():
     await pool.set_protocol_version(2)
     config_mod = json.dumps({"id": ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))})
-    credentials_mod = json.dumps({"key": '', "key_derivation_method": 'ARAGON2I_MOD'})
+    credentials_mod = json.dumps({"key": '', "key_derivation_method": 'ARGON2I_MOD'})
     t1_start = float(time.time())
     await wallet.create_wallet(config_mod, credentials_mod)
     t1_create_delta = float(time.time()) - t1_start
@@ -68,7 +68,7 @@ async def test_key_derivation_algorithm():
     print('\n', t1_create_delta, '\n', t1_open_delta, '\n', t1_close_delta, '\n', t1_delete_delta)
 
     config_int = json.dumps({"id": ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5))})
-    credentials_int = json.dumps({"key": '', "key_derivation_method": 'ARAGON2I_INT'})
+    credentials_int = json.dumps({"key": '', "key_derivation_method": 'ARGON2I_INT'})
     t2_start = float(time.time())
     await wallet.create_wallet(config_int, credentials_int)
     t2_create_delta = float(time.time()) - t2_start

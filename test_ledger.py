@@ -143,9 +143,21 @@ async def test_send_and_get_schema_positive(writer_role, reader_role):
     print(res2)
 
 
+@pytest.mark.skip('IS-932')
 @pytest.mark.asyncio
 async def test_send_and_get_schema_negative():
-    pass
+    await pool.set_protocol_version(2)
+    pool_handle = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    res = await get_schema_helper(pool_handle, wallet_handle, trustee_did,
+                                  '7kqbG8zcdAMc9Q6SMU4xZy:2:schema1:1.0')
+    res_json = json.loads(res)
+    schema_id, schema_json = await ledger.parse_get_schema_response(res)
+
+    assert res_json
+    print(schema_id, schema_json)
 
 
 @pytest.mark.asyncio
@@ -171,9 +183,21 @@ async def test_send_and_get_cred_def_positive():
     print(res2)
 
 
+@pytest.mark.skip('IS-932')
 @pytest.mark.asyncio
 async def test_send_and_get_cred_def_negative():
-    pass
+    await pool.set_protocol_version(2)
+    pool_handle = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    res = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did,
+                                    'AfdMw5jMX9pcNAuSwppbC7:3:CL:297:cred_def_tag')
+    res_json = json.loads(res)
+    cred_def_id, cred_def_json = await ledger.parse_get_cred_def_response(res)
+
+    assert res
+    print(cred_def_id, cred_def_json)
 
 
 @pytest.mark.asyncio

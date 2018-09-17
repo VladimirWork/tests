@@ -234,6 +234,7 @@ async def test_send_and_get_revoc_reg_def_negative():
 @pytest.mark.asyncio
 async def test_send_and_get_revoc_reg_entry_positive():
     await pool.set_protocol_version(2)
+    timestamp0 = int(time.time())
     pool_handle = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
@@ -250,12 +251,16 @@ async def test_send_and_get_revoc_reg_entry_positive():
                                                                 'revoc_def_tag', cred_def_id,
                                                                 json.dumps({'max_cred_num': 1,
                                                                             'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
-    timestamp = int(time.time())
-    res2 = await get_revoc_reg_helper(pool_handle, wallet_handle, target_did, revoc_reg_def_id, timestamp)
+    timestamp1 = int(time.time())
+    res2 = await get_revoc_reg_helper(pool_handle, wallet_handle, target_did, revoc_reg_def_id, timestamp1)
+    res3 = await get_revoc_reg_delta_helper(pool_handle, wallet_handle, target_did, revoc_reg_def_id,
+                                            timestamp0, timestamp1)
     assert res1['op'] == 'REPLY'
     assert res2['op'] == 'REPLY'
+    assert res3['op'] == 'REPLY'
     print(res1)
     print(res2)
+    print(res3)
 
 
 @pytest.mark.asyncio

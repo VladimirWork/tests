@@ -26,7 +26,7 @@ def random_seed_and_json():
            json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/indy/indy-node/scripts/ansible/pool_transactions_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
@@ -150,6 +150,13 @@ async def get_revoc_reg_def_helper(pool_handle, wallet_handle, submitter_did, id
 
 async def get_revoc_reg_helper(pool_handle, wallet_handle, submitter_did, id_, timestamp):
     req = await ledger.build_get_revoc_reg_request(submitter_did, id_, timestamp)
+    res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req))
+
+    return res
+
+
+async def get_revoc_reg_delta_helper(pool_handle, wallet_handle, submitter_did, id_, from_, to_):
+    req = await ledger.build_get_revoc_reg_delta_request(submitter_did, id_, from_, to_)
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req))
 
     return res

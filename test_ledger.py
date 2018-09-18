@@ -23,6 +23,7 @@ async def test_send_and_get_nym_positive(writer_role, reader_role):
     await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
     # Writer sends NYM
     res1 = json.loads(await nym_helper(pool_handle, wallet_handle, writer_did, target_did))
+    time.sleep(0.5)
     # Reader gets NYM
     res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, target_did, target_did))
 
@@ -162,7 +163,7 @@ async def test_send_and_get_schema_negative():
 
 @pytest.mark.asyncio
 async def test_send_and_get_cred_def_positive():
-    await pool.set_protocol_version(2)
+    # await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
@@ -173,7 +174,7 @@ async def test_send_and_get_cred_def_positive():
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
     res = await get_schema_helper(pool_handle, wallet_handle, target_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
-    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, target_did, schema_json, 'cred_def_tag',
+    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, target_did, schema_json, 'TAG',
                                                 None, json.dumps({'support_revocation': False}))
     res1 = json.loads(res)
     res2 = json.loads(await get_cred_def_helper(pool_handle, wallet_handle, target_did, cred_def_id))
@@ -181,6 +182,7 @@ async def test_send_and_get_cred_def_positive():
     assert res2['op'] == 'REPLY'
     print(res1)
     print(res2)
+    print(cred_def_id)
 
 
 @pytest.mark.skip('IS-932')
@@ -196,7 +198,7 @@ async def test_send_and_get_cred_def_negative():
     res_json = json.loads(res)
     cred_def_id, cred_def_json = await ledger.parse_get_cred_def_response(res)
 
-    assert res
+    assert res_json
     print(cred_def_id, cred_def_json)
 
 

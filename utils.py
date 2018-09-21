@@ -26,7 +26,7 @@ def random_seed_and_json():
            json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})

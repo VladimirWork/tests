@@ -5,21 +5,29 @@ from indy import wallet
 import os
 
 
-@pytest.mark.parametrize('wallet_id, wallet_key, wallet_key_derivation_method', [
-    (random_string(1), random_string(100), 'ARGON2I_MOD'),
-    (random_string(100), random_string(1), 'ARGON2I_INT')
+@pytest.mark.parametrize('wallet_config, wallet_credentials', [
+    (json.dumps({"id": random_string(1)}),
+     json.dumps({"key": random_string(100), "key_derivation_method": 'ARGON2I_MOD'})),
+    (json.dumps({"id": random_string(100)}),
+     json.dumps({"key": random_string(1), "key_derivation_method": 'ARGON2I_INT'}))
 ])
 @pytest.mark.asyncio
-async def test_wallet_create_open_positive(wallet_id, wallet_key, wallet_key_derivation_method):
-    wallet_handle = await wallet_helper(wallet_id, wallet_key, wallet_key_derivation_method)
-    assert wallet_handle
+async def test_wallet_create_open_positive(wallet_config, wallet_credentials):
+    res1 = await wallet.create_wallet(wallet_config, wallet_credentials)
+    res2 = await wallet.open_wallet(wallet_config, wallet_credentials)
+
+    assert res1 is None
+    assert isinstance(res2, int)
 
 
 @pytest.mark.asyncio
 async def test_wallet_close_delete_positive():
-    wallet_handle, wallet_config, wallet_credential = await wallet_helper()
-    await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
-    assert True
+    wallet_handle, wallet_config, wallet_credentials = await wallet_helper()
+    res1 = await wallet.close_wallet(wallet_handle)
+    res2 = await wallet.delete_wallet(wallet_config, wallet_credentials)
+
+    assert res1 is None
+    assert res2 is None
 
 
 @pytest.mark.parametrize('exp_config, imp_config', [
@@ -29,12 +37,18 @@ async def test_wallet_close_delete_positive():
 @pytest.mark.asyncio
 async def test_wallet_export_import_positive(exp_config, imp_config):
     wallet_handle, wallet_config, wallet_credential = await wallet_helper()
-    await wallet.export_wallet(wallet_handle, exp_config)
+    res1 = await wallet.export_wallet(wallet_handle, exp_config)
     await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
-    await wallet.import_wallet(wallet_config, wallet_credential, imp_config)
+    res2 = await wallet.import_wallet(wallet_config, wallet_credential, imp_config)
     os.remove('./wallet')
-    assert True
 
+    assert res1 is None
+    assert res2 is None
+
+
+@pytest.mark.asyncio
+async def test_generate_wallet_key_positive():
+    pass
 # ---------------------
 
 
@@ -51,6 +65,12 @@ async def test_wallet_close_delete_negative():
 @pytest.mark.asyncio
 async def test_wallet_export_import_negative():
     pass
+
+
+@pytest.mark.asyncio
+async def test_generate_wallet_key_negative():
+    pass
+# ---------------------
 
 
 @pytest.mark.asyncio
@@ -99,4 +119,5 @@ async def test_generate_wallet_key(seed):
     wallet_handle, wallet_config, wallet_credential = await wallet_helper(None, wk, 'RAW')
     print('\n', wk)
     await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
+
     assert wk is not None

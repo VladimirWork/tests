@@ -40,16 +40,16 @@ async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_met
     if not wallet_id:
         wallet_id = random_string(5)
     wallet_config = json.dumps({"id": wallet_id})
-    wallet_credential = json.dumps({"key": wallet_key, "key_derivation_method": wallet_key_derivation_method})
-    await wallet.create_wallet(wallet_config, wallet_credential)
-    wallet_handle = await wallet.open_wallet(wallet_config, wallet_credential)
+    wallet_credentials = json.dumps({"key": wallet_key, "key_derivation_method": wallet_key_derivation_method})
+    await wallet.create_wallet(wallet_config, wallet_credentials)
+    wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
 
-    return wallet_handle, wallet_config, wallet_credential
+    return wallet_handle, wallet_config, wallet_credentials
 
 
-async def wallet_destructor(wallet_handle, wallet_config, wallet_credential):
+async def wallet_destructor(wallet_handle, wallet_config, wallet_credentials):
     await wallet.close_wallet(wallet_handle)
-    await wallet.delete_wallet(wallet_config, wallet_credential)
+    await wallet.delete_wallet(wallet_config, wallet_credentials)
 
 
 async def nym_helper(pool_handle, wallet_handle, submitter_did, target_did,

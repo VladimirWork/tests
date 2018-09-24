@@ -26,14 +26,14 @@ def random_seed_and_json():
            json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
-async def pool_helper(pool_name=None, path_to_genesis='/home/indy/genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='./aws_genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
     await pool.create_pool_ledger_config(pool_name, pool_config)
     pool_handle = await pool.open_pool_ledger(pool_name, pool_config)
 
-    return pool_handle
+    return pool_handle, pool_name
 
 
 async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_method='ARGON2I_INT'):

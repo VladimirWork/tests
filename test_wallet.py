@@ -6,8 +6,8 @@ import os
 
 
 @pytest.mark.parametrize('wallet_id, wallet_key, wallet_key_derivation_method', [
-    (random_string(1), random_string(10), 'ARGON2I_MOD'),
-    (random_string(10), random_string(1), 'ARGON2I_INT')
+    (random_string(1), random_string(100), 'ARGON2I_MOD'),
+    (random_string(100), random_string(1), 'ARGON2I_INT')
 ])
 @pytest.mark.asyncio
 async def test_wallet_create_open_positive(wallet_id, wallet_key, wallet_key_derivation_method):
@@ -34,6 +34,8 @@ async def test_wallet_export_import_positive(exp_config, imp_config):
     await wallet.import_wallet(wallet_config, wallet_credential, imp_config)
     os.remove('./wallet')
     assert True
+
+# ---------------------
 
 
 @pytest.mark.asyncio

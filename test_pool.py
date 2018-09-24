@@ -13,6 +13,7 @@ async def test_pool_create_open_refresh_positive(pool_name, pool_config):
     res1 = await pool.create_pool_ledger_config(pool_name, pool_config)
     res2 = await pool.open_pool_ledger(pool_name, pool_config)
     res3 = await pool.refresh_pool_ledger(res2)
+    await pool_destructor(res2, pool_name)
 
     assert res1 is None
     assert isinstance(res2, int)
@@ -32,8 +33,8 @@ async def test_pool_close_delete_positive():
 
 
 @pytest.mark.parametrize('pool_name, pool_config, pool_handle, exceptions', [
-    (None, json.dumps({'genesis_txn': './aws_genesis'}), 1, (AttributeError, AttributeError, IndyError)),
-    (random_string(10), None, -1, (IndyError, IndyError, IndyError))
+    (None, json.dumps({'genesis_txn': './aws_genesis'}), 99, (AttributeError, AttributeError, IndyError)),
+    (random_string(10), None, -99, (IndyError, IndyError, IndyError))
 ])
 @pytest.mark.asyncio
 async def test_pool_create_open_refresh_negative(pool_name, pool_config, pool_handle, exceptions):
@@ -46,8 +47,8 @@ async def test_pool_create_open_refresh_negative(pool_name, pool_config, pool_ha
         await pool.refresh_pool_ledger(pool_handle)
 
 
-@pytest.mark.parametrize('pool_handle', [-1, 0, 1])
-@pytest.mark.parametrize('pool_name', ['some_name', ''])
+@pytest.mark.parametrize('pool_handle', [-99, 0, 99])
+@pytest.mark.parametrize('pool_name', [random_string(10), ''])
 @pytest.mark.asyncio
 async def test_pool_close_delete_negative(pool_handle, pool_name):
     await pool.set_protocol_version(2)
@@ -55,4 +56,3 @@ async def test_pool_close_delete_negative(pool_handle, pool_name):
         await pool.close_pool_ledger(pool_handle)
     with pytest.raises(IndyError):
         await pool.delete_pool_ledger_config(pool_name)
-

@@ -47,6 +47,11 @@ async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_met
     return wallet_handle, wallet_config, wallet_credentials
 
 
+async def pool_destructor(pool_handle, pool_name):
+    await pool.close_pool_ledger(pool_handle)
+    await pool.delete_pool_ledger_config(pool_name)
+
+
 async def wallet_destructor(wallet_handle, wallet_config, wallet_credentials):
     await wallet.close_wallet(wallet_handle)
     await wallet.delete_wallet(wallet_config, wallet_credentials)

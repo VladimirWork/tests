@@ -31,8 +31,14 @@ async def test_wallet_close_delete_positive():
 
 
 @pytest.mark.parametrize('exp_config, imp_config', [
-    (json.dumps({'path': './wallet', 'key': '', 'key_derivation_method': 'ARGON2I_MOD'}),
-     json.dumps({'path': './wallet', 'key': ''}))
+    (json.dumps({'path': './wallet', 'key': 'abc'}),
+     json.dumps({'path': './wallet', 'key': 'abc'})),
+
+    (json.dumps({'path': './wallet', 'key': 'bac', 'key_derivation_method': 'ARGON2I_MOD'}),
+     json.dumps({'path': './wallet', 'key': 'bac', 'key_derivation_method': 'ARGON2I_INT'})),
+
+    (json.dumps({'path': './wallet', 'key': 'bca', 'key_derivation_method': 'ARGON2I_INT'}),
+     json.dumps({'path': './wallet', 'key': 'bca', 'key_derivation_method': 'ARGON2I_MOD'}))
 ])
 @pytest.mark.asyncio
 async def test_wallet_export_import_positive(exp_config, imp_config):

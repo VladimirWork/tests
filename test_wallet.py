@@ -1,15 +1,17 @@
 import time
 import pytest
 from utils import *
-from indy import wallet
+from indy import wallet, IndyError
 import os
 
 
 @pytest.mark.parametrize('wallet_config, wallet_credentials', [
-    (json.dumps({"id": random_string(1)}),
-     json.dumps({"key": random_string(100), "key_derivation_method": 'ARGON2I_MOD'})),
-    (json.dumps({"id": random_string(100)}),
-     json.dumps({"key": random_string(1), "key_derivation_method": 'ARGON2I_INT'}))
+    (json.dumps({'id': random_string(10)}),
+     json.dumps({"key": ''})),
+    (json.dumps({'id': random_string(1)}),
+     json.dumps({'key': random_string(100), 'key_derivation_method': 'ARGON2I_MOD'})),
+    (json.dumps({'id': random_string(100)}),
+     json.dumps({'key': random_string(1), 'key_derivation_method': 'ARGON2I_INT'}))
 ])
 @pytest.mark.asyncio
 async def test_wallet_create_open_positive(wallet_config, wallet_credentials):
@@ -33,10 +35,8 @@ async def test_wallet_close_delete_positive():
 @pytest.mark.parametrize('exp_config, imp_config', [
     (json.dumps({'path': './wallet', 'key': 'abc'}),
      json.dumps({'path': './wallet', 'key': 'abc'})),
-
     (json.dumps({'path': './wallet', 'key': 'bac', 'key_derivation_method': 'ARGON2I_MOD'}),
      json.dumps({'path': './wallet', 'key': 'bac', 'key_derivation_method': 'ARGON2I_INT'})),
-
     (json.dumps({'path': './wallet', 'key': 'bca', 'key_derivation_method': 'ARGON2I_INT'}),
      json.dumps({'path': './wallet', 'key': 'bca', 'key_derivation_method': 'ARGON2I_MOD'}))
 ])
@@ -52,20 +52,39 @@ async def test_wallet_export_import_positive(exp_config, imp_config):
     assert res2 is None
 
 
+@pytest.mark.parametrize('config', [None,
+                                    json.dumps({'seed': '0000000000000000000000000000seed'}),
+                                    json.dumps({'seed': random_string(32)})])
 @pytest.mark.asyncio
-async def test_generate_wallet_key_positive():
-    pass
+async def test_generate_wallet_key_positive(config):
+    res = await wallet.generate_wallet_key(config)
+    print(res)
 # ---------------------
 
 
+@pytest.mark.parametrize('wallet_config, wallet_credentials, exceptions', [
+    (None, None, (AttributeError, AttributeError)),
+    (json.dumps({"id": ''}), json.dumps({"key": 1}), (IndyError, IndyError))
+])
 @pytest.mark.asyncio
-async def test_wallet_create_open_negative():
-    pass
+async def test_wallet_create_open_negative(wallet_config, wallet_credentials, exceptions):
+    with pytest.raises(exceptions[0]):
+        await wallet.create_wallet(wallet_config, wallet_credentials)
+    with pytest.raises(exceptions[1]):
+        await wallet.open_wallet(wallet_config, wallet_credentials)
 
 
+@pytest.mark.parametrize('wallet_handle', [-99, 0, 99])
+@pytest.mark.parametrize('wallet_config, wallet_credentials, exceptions', [
+    (None, None, (AttributeError,)),
+    (json.dumps({"id": ''}), json.dumps({"key": 1}), (IndyError,))
+])
 @pytest.mark.asyncio
-async def test_wallet_close_delete_negative():
-    pass
+async def test_wallet_close_delete_negative(wallet_handle, wallet_config, wallet_credentials, exceptions):
+    with pytest.raises(IndyError):
+        await wallet.close_wallet(wallet_handle)
+    with pytest.raises(exceptions[0]):
+        await wallet.delete_wallet(wallet_config, wallet_credentials)
 
 
 @pytest.mark.asyncio
@@ -111,19 +130,3 @@ async def test_key_derivation_algorithm():
     assert(t2_create_delta < t1_create_delta)
     assert(t2_open_delta < t1_open_delta)
     assert(t2_delete_delta < t1_delete_delta)
-
-
-@pytest.mark.parametrize('seed', [None, '', '0000000000000000000000000000seed'])
-@pytest.mark.asyncio
-async def test_generate_wallet_key(seed):
-    await pool.set_protocol_version(2)
-    if not seed:
-        key_config = None
-    else:
-        key_config = json.dumps({'seed': seed})
-    wk = await wallet.generate_wallet_key(key_config)
-    wallet_handle, wallet_config, wallet_credential = await wallet_helper(None, wk, 'RAW')
-    print('\n', wk)
-    await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
-
-    assert wk is not None

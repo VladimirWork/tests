@@ -4,7 +4,7 @@ from utils import *
 
 
 @pytest.mark.asyncio
-async def test_misc():
+async def test_misc_get_nonexistent():
     await pool.set_protocol_version(2)
     pool_handle = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()

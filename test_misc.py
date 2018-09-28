@@ -16,3 +16,8 @@ async def test_misc():
                                                 'VRaXpAenQy5gK8mNDUdJe8:3:CL:20'))
     print(res1)
     print(res2)
+
+
+@pytest.mark.asyncio
+async def test_misc_wallet():
+    await wallet_helper('abc', 'abc',)

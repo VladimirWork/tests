@@ -42,10 +42,10 @@ async def test_wallet_close_delete_positive():
 ])
 @pytest.mark.asyncio
 async def test_wallet_export_import_positive(exp_config, imp_config):
-    wallet_handle, wallet_config, wallet_credential = await wallet_helper()
+    wallet_handle, wallet_config, wallet_credentials = await wallet_helper()
     res1 = await wallet.export_wallet(wallet_handle, exp_config)
-    await wallet_destructor(wallet_handle, wallet_config, wallet_credential)
-    res2 = await wallet.import_wallet(wallet_config, wallet_credential, imp_config)
+    await wallet_destructor(wallet_handle, wallet_config, wallet_credentials)
+    res2 = await wallet.import_wallet(wallet_config, wallet_credentials, imp_config)
     os.remove('./wallet')
 
     assert res1 is None
@@ -87,14 +87,27 @@ async def test_wallet_close_delete_negative(wallet_handle, wallet_config, wallet
         await wallet.delete_wallet(wallet_config, wallet_credentials)
 
 
+@pytest.mark.parametrize('wallet_handle, exp_config, exceptions_e', [
+    (None, None, (AttributeError,))
+])
+@pytest.mark.parametrize('wallet_config, wallet_credentials, imp_config, exceptions_i', [
+    (None, None, None, (AttributeError,))
+])
 @pytest.mark.asyncio
-async def test_wallet_export_import_negative():
-    pass
+async def test_wallet_export_import_negative(wallet_handle, wallet_config, wallet_credentials, exp_config, imp_config,
+                                             exceptions_e, exceptions_i):
+    with pytest.raises(exceptions_e[0]):
+        await wallet.export_wallet(wallet_handle, exp_config)
+    with pytest.raises(exceptions_i[0]):
+        await wallet.import_wallet(wallet_config, wallet_credentials, imp_config)
 
 
+@pytest.mark.parametrize('config', [json.dumps({'seed': ''}), json.dumps({'seed': random_string(1)}),
+                                    json.dumps({'seed': random_string(33)})])
 @pytest.mark.asyncio
-async def test_generate_wallet_key_negative():
-    pass
+async def test_generate_wallet_key_negative(config):
+    with pytest.raises(IndyError):
+        await wallet.generate_wallet_key(config)
 # ---------------------
 
 

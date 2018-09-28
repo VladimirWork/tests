@@ -88,6 +88,7 @@ async def test_vc_by_demotion():
     assert get_after['result']['seqNo'] is not None
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_vc_by_degradation():
     for i in range(1, 26):

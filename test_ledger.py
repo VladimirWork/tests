@@ -161,23 +161,30 @@ async def test_send_and_get_schema_negative():
     print(schema_id, schema_json)
 
 
+@pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
 @pytest.mark.asyncio
-async def test_send_and_get_cred_def_positive():
-    # await pool.set_protocol_version(2)
+async def test_send_and_get_cred_def_positive(writer_role, reader_role):
+    await pool.set_protocol_version(2)
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
-    target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
-    submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+    writer_did, writer_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    reader_did, reader_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    await nym_helper(pool_handle, wallet_handle, submitter_did, target_did, target_vk, None, 'TRUSTEE')
-    schema_id, _ = await schema_helper(pool_handle, wallet_handle, target_did,
+    # Trustee adds CRED_DEF writer
+    await nym_helper(pool_handle, wallet_handle, trustee_did, writer_did, writer_vk, None, writer_role)
+    # Trustee adds CRED_DEF reader
+    await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
+    schema_id, _ = await schema_helper(pool_handle, wallet_handle, writer_did,
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
-    res = await get_schema_helper(pool_handle, wallet_handle, target_did, schema_id)
+    time.sleep(0.5)
+    res = await get_schema_helper(pool_handle, wallet_handle, reader_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
-    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, target_did, schema_json, 'TAG',
+    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, writer_did, schema_json, 'TAG',
                                                 None, json.dumps({'support_revocation': False}))
     res1 = json.loads(res)
-    res2 = json.loads(await get_cred_def_helper(pool_handle, wallet_handle, target_did, cred_def_id))
+    res2 = json.loads(await get_cred_def_helper(pool_handle, wallet_handle, reader_did, cred_def_id))
     assert res1['op'] == 'REPLY'
     assert res2['op'] == 'REPLY'
     print(res1)
@@ -202,26 +209,33 @@ async def test_send_and_get_cred_def_negative():
     print(cred_def_id, cred_def_json)
 
 
+@pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
 @pytest.mark.asyncio
-async def test_send_and_get_revoc_reg_def_positive():
+async def test_send_and_get_revoc_reg_def_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
-    target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
-    submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+    writer_did, writer_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    reader_did, reader_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    await nym_helper(pool_handle, wallet_handle, submitter_did, target_did, target_vk, None, 'TRUSTEE')
-    schema_id, _ = await schema_helper(pool_handle, wallet_handle, target_did,
+    # Trustee adds REVOC_REG_DEF writer
+    await nym_helper(pool_handle, wallet_handle, trustee_did, writer_did, writer_vk, None, writer_role)
+    # Trustee adds REVOC_REG_DEF reader
+    await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
+    schema_id, _ = await schema_helper(pool_handle, wallet_handle, writer_did,
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
-    res = await get_schema_helper(pool_handle, wallet_handle, target_did, schema_id)
+    time.sleep(0.5)
+    res = await get_schema_helper(pool_handle, wallet_handle, reader_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
-    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, target_did, schema_json, 'cred_def_tag',
+    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, writer_did, schema_json, 'cred_def_tag',
                                                 None, json.dumps({"support_revocation": True}))
-    revoc_reg_def_id, _, _, res1 = await revoc_reg_def_helper(pool_handle, wallet_handle, target_did, None,
+    revoc_reg_def_id, _, _, res1 = await revoc_reg_def_helper(pool_handle, wallet_handle, writer_did, None,
                                                               'revoc_def_tag', cred_def_id,
                                                               json.dumps({'max_cred_num': 1,
                                                                           'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
-    res2 = await get_revoc_reg_def_helper(pool_handle, wallet_handle, target_did, revoc_reg_def_id)
+    res2 = await get_revoc_reg_def_helper(pool_handle, wallet_handle, reader_did, revoc_reg_def_id)
     assert res1['op'] == 'REPLY'
     assert res2['op'] == 'REPLY'
     print(res1)
@@ -233,29 +247,36 @@ async def test_send_and_get_revoc_reg_def_negative():
     pass
 
 
+@pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
 @pytest.mark.asyncio
-async def test_send_and_get_revoc_reg_entry_positive():
+async def test_send_and_get_revoc_reg_entry_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
     timestamp0 = int(time.time())
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
-    target_did, target_vk = await did.create_and_store_my_did(wallet_handle, '{}')
-    submitter_did, submitter_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+    writer_did, writer_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    reader_did, reader_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    await nym_helper(pool_handle, wallet_handle, submitter_did, target_did, target_vk, None, 'TRUSTEE')
-    schema_id, _ = await schema_helper(pool_handle, wallet_handle, target_did,
+    # Trustee adds REVOC_REG_ENTRY writer
+    await nym_helper(pool_handle, wallet_handle, trustee_did, writer_did, writer_vk, None, writer_role)
+    # Trustee adds REVOC_REG_ENTRY reader
+    await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
+    schema_id, _ = await schema_helper(pool_handle, wallet_handle, writer_did,
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
-    res = await get_schema_helper(pool_handle, wallet_handle, target_did, schema_id)
+    time.sleep(0.5)
+    res = await get_schema_helper(pool_handle, wallet_handle, reader_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
-    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, target_did, schema_json, 'cred_def_tag',
+    cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, writer_did, schema_json, 'cred_def_tag',
                                                 'CL', json.dumps({'support_revocation': True}))
-    revoc_reg_def_id, _, _, res1 = await revoc_reg_entry_helper(pool_handle, wallet_handle, target_did, 'CL_ACCUM',
+    revoc_reg_def_id, _, _, res1 = await revoc_reg_entry_helper(pool_handle, wallet_handle, writer_did, 'CL_ACCUM',
                                                                 'revoc_def_tag', cred_def_id,
                                                                 json.dumps({'max_cred_num': 1,
                                                                             'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
     timestamp1 = int(time.time())
-    res2 = await get_revoc_reg_helper(pool_handle, wallet_handle, target_did, revoc_reg_def_id, timestamp1)
-    res3 = await get_revoc_reg_delta_helper(pool_handle, wallet_handle, target_did, revoc_reg_def_id,
+    res2 = await get_revoc_reg_helper(pool_handle, wallet_handle, reader_did, revoc_reg_def_id, timestamp1)
+    res3 = await get_revoc_reg_delta_helper(pool_handle, wallet_handle, reader_did, revoc_reg_def_id,
                                             timestamp0, timestamp1)
     assert res1['op'] == 'REPLY'
     assert res2['op'] == 'REPLY'

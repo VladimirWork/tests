@@ -5,7 +5,7 @@ from ctypes import CDLL
 
 
 @pytest.mark.asyncio
-async def test_payments():
+async def test_payments_basic():
     await pool.set_protocol_version(2)
     library_name, initializer_name = 'libsovtoken.so', 'sovtoken_init'
     library = CDLL(library_name)
@@ -65,3 +65,59 @@ async def test_payments():
     assert res2['op'] == 'REPLY'
     assert res2['result']['txnMetadata']['seqNo'] is not None
     assert res3['op'] == 'REPLY'
+
+
+async def test_build_mint_req_positive():
+    pass
+
+
+async def test_build_mint_req_negative():
+    pass
+
+
+async def test_create_and_list_payment_address_positive():
+    pass
+
+
+async def test_create_and_list_payment_address_negative():
+    pass
+
+
+async def test_add_request_fees_and_parse_response_with_fees_positive():
+    pass
+
+
+async def test_add_request_fees_and_parse_response_with_fees_negative():
+    pass
+
+
+async def test_build_and_parse_get_payment_sources_positive():
+    pass
+
+
+async def test_build_and_parse_get_payment_sources_negative():
+    pass
+
+
+async def test_build_payment_req_and_parse_payment_response_positive():
+    pass
+
+
+async def test_build_payment_req_and_parse_payment_response_negative():
+    pass
+
+
+async def test_set_get_parse_txn_fees_positive():
+    pass
+
+
+async def test_set_get_parse_txn_fees_negative():
+    pass
+
+
+async def test_build_and_parse_verify_payment_positive():
+    pass
+
+
+async def test_build_and_parse_verify_payment_negative():
+    pass

@@ -3,6 +3,7 @@ import string
 import random
 import base58
 from indy import pool, wallet, ledger, anoncreds, blob_storage
+from ctypes import CDLL
 
 
 def run_async_method(method, *args, **kwargs):
@@ -26,7 +27,7 @@ def random_seed_and_json():
            json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
-async def pool_helper(pool_name=None, path_to_genesis='./aws_genesis'):
+async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis'):
     if not pool_name:
         pool_name = random_string(5)
     pool_config = json.dumps({"genesis_txn": path_to_genesis})
@@ -55,6 +56,12 @@ async def pool_destructor(pool_handle, pool_name):
 async def wallet_destructor(wallet_handle, wallet_config, wallet_credentials):
     await wallet.close_wallet(wallet_handle)
     await wallet.delete_wallet(wallet_config, wallet_credentials)
+
+
+async def payment_initializer(library_name, initializer_name):
+    library = CDLL(library_name)
+    init = getattr(library, initializer_name)
+    init()
 
 
 async def nym_helper(pool_handle, wallet_handle, submitter_did, target_did,

@@ -1,7 +1,6 @@
 import testinfra
 import pytest
 import time
-from concurrent.futures import ThreadPoolExecutor
 from utils import *
 from indy import did, ledger
 

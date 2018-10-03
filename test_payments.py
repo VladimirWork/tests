@@ -1,16 +1,12 @@
 from utils import *
 from indy import pool, did, payment
 import pytest
-from ctypes import CDLL
 
 
 @pytest.mark.asyncio
 async def test_payments_basic():
     await pool.set_protocol_version(2)
-    library_name, initializer_name = 'libsovtoken.so', 'sovtoken_init'
-    library = CDLL(library_name)
-    init = getattr(library, initializer_name)
-    init()
+    await payment_initializer('libsovtoken.so', 'sovtoken_init')
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     method = 'sov'
@@ -67,57 +63,88 @@ async def test_payments_basic():
     assert res3['op'] == 'REPLY'
 
 
-async def test_build_mint_req_positive():
-    pass
+@pytest.mark.parametrize('seed', ['', '11111111111111111111111111111111'])
+@pytest.mark.parametrize('amount', [1, 2147483648])
+@pytest.mark.parametrize('extra', [None, '', 'comment'])
+@pytest.mark.asyncio
+async def test_build_mint_req_positive(seed, amount, extra):
+    await pool.set_protocol_version(2)
+    await payment_initializer('libsovtoken.so', 'sovtoken_init')
+    method = 'sov'
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    address = await payment.create_payment_address(wallet_handle, method, json.dumps(
+        {"seed": seed}))
+    mint_req_json, payment_method =\
+        await payment.build_mint_req(wallet_handle, trustee_did,
+                                     json.dumps([{"recipient": address, "amount": amount}]), extra)
+    mint_req_json = json.loads(mint_req_json)
+    
+    assert mint_req_json['operation']['type'] == '10000'
+    assert method == payment_method
 
 
+@pytest.mark.asyncio
 async def test_build_mint_req_negative():
     pass
 
 
+@pytest.mark.asyncio
 async def test_create_and_list_payment_address_positive():
     pass
 
 
+@pytest.mark.asyncio
 async def test_create_and_list_payment_address_negative():
     pass
 
 
+@pytest.mark.asyncio
 async def test_add_request_fees_and_parse_response_with_fees_positive():
     pass
 
 
+@pytest.mark.asyncio
 async def test_add_request_fees_and_parse_response_with_fees_negative():
     pass
 
 
+@pytest.mark.asyncio
 async def test_build_and_parse_get_payment_sources_positive():
     pass
 
 
+@pytest.mark.asyncio
 async def test_build_and_parse_get_payment_sources_negative():
     pass
 
 
+@pytest.mark.asyncio
 async def test_build_payment_req_and_parse_payment_response_positive():
     pass
 
 
+@pytest.mark.asyncio
 async def test_build_payment_req_and_parse_payment_response_negative():
     pass
 
 
+@pytest.mark.asyncio
 async def test_set_get_parse_txn_fees_positive():
     pass
 
 
+@pytest.mark.asyncio
 async def test_set_get_parse_txn_fees_negative():
     pass
 
 
+@pytest.mark.asyncio
 async def test_build_and_parse_verify_payment_positive():
     pass
 
 
+@pytest.mark.asyncio
 async def test_build_and_parse_verify_payment_negative():
     pass

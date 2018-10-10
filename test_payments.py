@@ -1,5 +1,5 @@
 from utils import *
-from indy import pool, did, payment
+from indy import pool, did, payment, IndyError
 import pytest
 
 
@@ -64,7 +64,7 @@ async def test_payments_basic():
 
 
 @pytest.mark.parametrize('seed', ['', '11111111111111111111111111111111'])
-@pytest.mark.parametrize('amount', [1, 2147483648])
+@pytest.mark.parametrize('amount', [1, 1844674407370955161])
 @pytest.mark.parametrize('extra', [None, '', 'comment'])
 @pytest.mark.asyncio
 async def test_build_mint_req_positive(seed, amount, extra):
@@ -80,14 +80,28 @@ async def test_build_mint_req_positive(seed, amount, extra):
         await payment.build_mint_req(wallet_handle, trustee_did,
                                      json.dumps([{"recipient": address, "amount": amount}]), extra)
     mint_req_json = json.loads(mint_req_json)
-    
+
     assert mint_req_json['operation']['type'] == '10000'
     assert method == payment_method
 
 
+@pytest.mark.parametrize('address, submitter_did, amount', [
+    ()
+])
 @pytest.mark.asyncio
-async def test_build_mint_req_negative():
-    pass
+async def test_build_mint_req_negative(address, submitter_did, amount):
+    await pool.set_protocol_version(2)
+    await payment_initializer('libsovtoken.so', 'sovtoken_init')
+    # method = 'sov'
+    wallet_handle, _, _ = await wallet_helper()
+    # trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+    #     {'seed': '000000000000000000000000Trustee1'}))
+    # address = await payment.create_payment_address(wallet_handle, method, json.dumps(
+    #     {"seed": '00000000000000000000000000000000'}))
+    with pytest.raises(IndyError):
+        mint_req_json, payment_method =\
+            await payment.build_mint_req(wallet_handle, submitter_did,
+                                         json.dumps([{"recipient": address, "amount": amount}]), None)
 
 
 @pytest.mark.asyncio

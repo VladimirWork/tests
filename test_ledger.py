@@ -5,8 +5,8 @@ import hashlib
 import time
 
 
-@pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB'])
-@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
+@pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', None])
 @pytest.mark.asyncio
 async def test_send_and_get_nym_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
@@ -116,7 +116,7 @@ async def test_send_and_get_attrib_negative(xhash, raw, enc, error):
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
-@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', None])
 @pytest.mark.asyncio
 async def test_send_and_get_schema_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
@@ -162,7 +162,7 @@ async def test_send_and_get_schema_negative():
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
-@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', None])
 @pytest.mark.asyncio
 async def test_send_and_get_cred_def_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
@@ -210,7 +210,7 @@ async def test_send_and_get_cred_def_negative():
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
-@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', None])
 @pytest.mark.asyncio
 async def test_send_and_get_revoc_reg_def_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)
@@ -248,7 +248,7 @@ async def test_send_and_get_revoc_reg_def_negative():
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
-@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', 'TGB', None])
+@pytest.mark.parametrize('reader_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR', None])
 @pytest.mark.asyncio
 async def test_send_and_get_revoc_reg_entry_positive(writer_role, reader_role):
     await pool.set_protocol_version(2)

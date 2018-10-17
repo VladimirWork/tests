@@ -85,23 +85,9 @@ async def test_build_mint_req_positive(seed, amount, extra):
     assert method == payment_method
 
 
-@pytest.mark.parametrize('address, submitter_did, amount', [
-    ()
-])
 @pytest.mark.asyncio
-async def test_build_mint_req_negative(address, submitter_did, amount):
-    await pool.set_protocol_version(2)
-    await payment_initializer('libsovtoken.so', 'sovtoken_init')
-    # method = 'sov'
-    wallet_handle, _, _ = await wallet_helper()
-    # trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
-    #     {'seed': '000000000000000000000000Trustee1'}))
-    # address = await payment.create_payment_address(wallet_handle, method, json.dumps(
-    #     {"seed": '00000000000000000000000000000000'}))
-    with pytest.raises(IndyError):
-        mint_req_json, payment_method =\
-            await payment.build_mint_req(wallet_handle, submitter_did,
-                                         json.dumps([{"recipient": address, "amount": amount}]), None)
+async def test_build_mint_req_negative():
+    pass
 
 
 @pytest.mark.asyncio

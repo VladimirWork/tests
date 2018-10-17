@@ -23,7 +23,7 @@ async def test_send_and_get_nym_positive(writer_role, reader_role):
     await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
     # Writer sends NYM
     res1 = json.loads(await nym_helper(pool_handle, wallet_handle, writer_did, target_did))
-    time.sleep(0.5)
+    time.sleep(1)
     # Reader gets NYM
     res2 = json.loads(await get_nym_helper(pool_handle, wallet_handle, target_did, target_did))
 
@@ -178,7 +178,7 @@ async def test_send_and_get_cred_def_positive(writer_role, reader_role):
     await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
     schema_id, _ = await schema_helper(pool_handle, wallet_handle, writer_did,
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
-    time.sleep(0.5)
+    time.sleep(1)
     res = await get_schema_helper(pool_handle, wallet_handle, reader_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
     cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, writer_did, schema_json, 'TAG',
@@ -226,7 +226,7 @@ async def test_send_and_get_revoc_reg_def_positive(writer_role, reader_role):
     await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
     schema_id, _ = await schema_helper(pool_handle, wallet_handle, writer_did,
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
-    time.sleep(0.5)
+    time.sleep(1)
     res = await get_schema_helper(pool_handle, wallet_handle, reader_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
     cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, writer_did, schema_json, 'cred_def_tag',
@@ -265,7 +265,7 @@ async def test_send_and_get_revoc_reg_entry_positive(writer_role, reader_role):
     await nym_helper(pool_handle, wallet_handle, trustee_did, reader_did, reader_vk, None, reader_role)
     schema_id, _ = await schema_helper(pool_handle, wallet_handle, writer_did,
                                        'schema1', '1.0', json.dumps(["age", "sex", "height", "name"]))
-    time.sleep(0.5)
+    time.sleep(1)
     res = await get_schema_helper(pool_handle, wallet_handle, reader_did, schema_id)
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
     cred_def_id, _, res = await cred_def_helper(pool_handle, wallet_handle, writer_did, schema_json, 'cred_def_tag',

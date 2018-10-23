@@ -107,6 +107,7 @@ async def test_send_and_get_attrib_negative(xhash, raw, enc, error):
     if error:
         with pytest.raises(error):
             await attrib_helper(pool_handle, wallet_handle, target_did, target_did, xhash, raw, enc)
+        with pytest.raises(error):
             await get_attrib_helper(pool_handle, wallet_handle, target_did, target_did, xhash, raw, enc)
     else:
         res1 = json.loads(await attrib_helper(pool_handle, wallet_handle, target_did, target_did, xhash, raw, enc))
@@ -148,21 +149,34 @@ async def test_send_and_get_schema_positive(writer_role, reader_role):
     print(res2)
 
 
-@pytest.mark.skip('IS-932')
+@pytest.mark.parametrize('schema_name, schema_version, schema_attrs, schema_id, errors', [
+    (None, None, None, None, (AttributeError, AttributeError)),
+    ('', '', '', '', (IndyError, IndyError)),
+    # (1, 2, 3, '7kqbG8zcdAMc9Q6SMU4xZy:2:schema1:1.0', (AttributeError, IndyError)) IS-932
+])
 @pytest.mark.asyncio
-async def test_send_and_get_schema_negative():
+async def test_send_and_get_schema_negative(schema_name, schema_version, schema_attrs, schema_id, errors):
     await pool.set_protocol_version(2)
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    res = await get_schema_helper(pool_handle, wallet_handle, trustee_did,
-                                  '7kqbG8zcdAMc9Q6SMU4xZy:2:schema1:1.0')
-    res_json = json.loads(res)
-    schema_id, schema_json = await ledger.parse_get_schema_response(res)
+    if errors:
+        with pytest.raises(errors[0]):
+            await schema_helper(pool_handle, wallet_handle, trustee_did, schema_name, schema_version, schema_attrs)
+        with pytest.raises(errors[1]):
+            await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    # TODO: get reqnacks from pool
+    else:
+        res1 = json.loads(await schema_helper(pool_handle, wallet_handle, trustee_did, schema_name, schema_version,
+                                              schema_attrs))
+        res2 = json.loads(await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id))
 
-    assert res_json
-    print(schema_id, schema_json)
+        assert res1['op'] == 'REQNACK'
+        assert res2['op'] == 'REQNACK'
+
+        print(res1)
+        print(res2)
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])
@@ -196,21 +210,34 @@ async def test_send_and_get_cred_def_positive(writer_role, reader_role):
     print(cred_def_id)
 
 
-@pytest.mark.skip('IS-932')
+@pytest.mark.parametrize('schema_json, tag, signature_type, config_json, cred_def_id, errors', [
+    (None, None, None, None, None, (AttributeError, AttributeError)),
+    ('', '', '', '', '', (IndyError, IndyError))
+])
 @pytest.mark.asyncio
-async def test_send_and_get_cred_def_negative():
+async def test_send_and_get_cred_def_negative(schema_json, tag, signature_type, config_json, cred_def_id, errors):
     await pool.set_protocol_version(2)
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    res = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did,
-                                    'AfdMw5jMX9pcNAuSwppbC7:3:CL:297:cred_def_tag')
-    res_json = json.loads(res)
-    cred_def_id, cred_def_json = await ledger.parse_get_cred_def_response(res)
+    if errors:
+        with pytest.raises(errors[0]):
+            await cred_def_helper(
+                pool_handle, wallet_handle, trustee_did, schema_json, tag, signature_type, config_json)
+        with pytest.raises(errors[1]):
+            await get_cred_def_helper(pool_handle, wallet_handle, trustee_did, cred_def_id)
+    # TODO: get reqnacks from pool
+    else:
+        res1 = json.loads(await cred_def_helper(pool_handle, wallet_handle, trustee_did, schema_json, tag,
+                                                signature_type, config_json))
+        res2 = json.loads(await get_cred_def_helper(pool_handle, wallet_handle, trustee_did, cred_def_id))
 
-    assert res_json
-    print(cred_def_id, cred_def_json)
+        assert res1['op'] == 'REQNACK'
+        assert res2['op'] == 'REQNACK'
+
+        print(res1)
+        print(res2)
 
 
 @pytest.mark.parametrize('writer_role', ['TRUSTEE', 'STEWARD', 'TRUST_ANCHOR'])

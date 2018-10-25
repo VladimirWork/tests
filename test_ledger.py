@@ -152,7 +152,7 @@ async def test_send_and_get_schema_positive(writer_role, reader_role):
 @pytest.mark.parametrize('schema_name, schema_version, schema_attrs, schema_id, errors', [
     (None, None, None, None, (AttributeError, AttributeError)),
     ('', '', '', '', (IndyError, IndyError)),
-    # (1, 2, 3, '7kqbG8zcdAMc9Q6SMU4xZy:2:schema1:1.0', (AttributeError, IndyError)) IS-932
+    (1, 2, 3, 4, (AttributeError, AttributeError))
 ])
 @pytest.mark.asyncio
 async def test_send_and_get_schema_negative(schema_name, schema_version, schema_attrs, schema_id, errors):

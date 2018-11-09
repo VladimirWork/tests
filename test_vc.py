@@ -8,7 +8,7 @@ from indy import did, ledger
 @pytest.mark.asyncio
 async def test_vc_by_restart():
     await pool.set_protocol_version(2)
-    pool_handle = await pool_helper()
+    pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -51,7 +51,7 @@ async def test_vc_by_restart():
 @pytest.mark.asyncio
 async def test_vc_by_demotion():
     await pool.set_protocol_version(2)
-    pool_handle = await pool_helper()
+    pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))

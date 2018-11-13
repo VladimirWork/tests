@@ -1,5 +1,4 @@
 import time
-
 from utils import *
 from indy import pool, did, payment
 import pytest
@@ -27,7 +26,7 @@ async def test_libsovtoken_acceptance():
     await nym_helper(pool_handle, wallet_handle, trustee_did1, trustee_did4, trustee_vk4, None, 'TRUSTEE')
 
     req = await payment.build_set_txn_fees_req(wallet_handle, trustee_did1, payment_method, json.dumps(
-        {'10001': 5, '102': 3, '101': 2, '1': 1, '100': 4, '113': 6,'114': 7}))
+        {'10001': 5, '102': 3, '101': 2, '1': 1, '100': 4, '113': 6, '114': 7}))
 
     req = await ledger.multi_sign_request(wallet_handle, trustee_did1, req)
     req = await ledger.multi_sign_request(wallet_handle, trustee_did2, req)
@@ -153,7 +152,7 @@ async def test_libsovtoken_acceptance():
     res11 = await did.key_for_local_did(wallet_handle, trustee_did2)
     assert res11 != res10
 
-    timestamp0 = int(time.time())
+    # timestamp0 = int(time.time())
     # revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json, res = await revoc_reg_def_helper(pool_handle, wallet_handle, submitter_did, revoc_def_type, tag, cred_def_id, config_json)
 
     # revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json, res = await revoc_reg_entry_helper(pool_handle, wallet_handle, submitter_did, revoc_def_type, tag, cred_def_id, config_json)

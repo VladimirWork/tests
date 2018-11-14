@@ -26,7 +26,7 @@ async def test_pool_upgrade_positive():
          datetime.strftime(datetime.now(tz=timezone.utc) + timedelta(minutes=init_time+10), '%Y-%m-%dT%H:%M:%S%z'),
          '4PS3EDQ3dW1tci1Bp6543CfuuebjFrg36kLAUcskGfaA':
          datetime.strftime(datetime.now(tz=timezone.utc) + timedelta(minutes=init_time+15), '%Y-%m-%dT%H:%M:%S%z')}))
-    reinstall = True
+    reinstall = False
     force = True
     # package = 'indy-node'
     pool_handle, _ = await pool_helper()
@@ -43,6 +43,8 @@ async def test_pool_upgrade_positive():
 
     hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     print(hosts)
-    versions = [host.run('dpkg -l | grep indy-node') for host in hosts]
-    print(versions)
-    
+    outputs = [host.run('dpkg -l | grep indy-node') for host in hosts]
+    print(outputs)
+    checks = [output.stdout.find(version) for output in outputs]
+    print(checks)
+    assert((check is not -1 for check in checks))

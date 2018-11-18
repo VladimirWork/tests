@@ -12,7 +12,7 @@ import testinfra
 async def test_pool_upgrade_positive():
     await pool.set_protocol_version(2)
     init_time = -20
-    version = '1.6.673'
+    version = '1.6.682'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
     action = 'start'
     _sha256 = hashlib.sha256().hexdigest()
@@ -39,7 +39,7 @@ async def test_pool_upgrade_positive():
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(60)
+    time.sleep(90)
 
     hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     print(hosts)
@@ -47,4 +47,5 @@ async def test_pool_upgrade_positive():
     print(outputs)
     checks = [output.stdout.find(version) for output in outputs]
     print(checks)
-    assert((check is not -1 for check in checks))
+    for check in checks:
+        assert check is not -1

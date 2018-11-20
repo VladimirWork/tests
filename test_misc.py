@@ -1,7 +1,12 @@
 import pytest
 import time
+# import logging
 from indy import did, IndyError
 from utils import *
+import testinfra
+
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(level=0, format='%(asctime)s %(message)s')
 
 
 @pytest.mark.asyncio
@@ -49,4 +54,61 @@ async def test_misc_get_nonexistent():
 
 @pytest.mark.asyncio
 async def test_misc_wallet():
-    await wallet_helper('abc', 'abc',)
+    await wallet_helper('cba', 'cba')
+
+
+@pytest.mark.asyncio
+async def test_misc_get_txn_by_seqno():
+    await pool.set_protocol_version(2)
+    pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis')
+    req = await ledger.build_get_txn_request(None, None, 9738)
+    res = await ledger.submit_request(pool_handle, req)
+    print(res)
+
+
+@pytest.mark.asyncio
+async def test_misc_state_proof():
+    await pool.set_protocol_version(2)
+    pool_handle, _ = await pool_helper()
+    hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
+    print(hosts)
+    outputs0 = [host.run('systemctl stop indy-node') for host in hosts[:-1]]
+    print(outputs0)
+
+    time.sleep(1)
+    req = await ledger.build_get_nym_request(None, 'V4SGRU86Z58d6TV7PBUe7f')
+    res = json.loads(await ledger.submit_request(pool_handle, req))
+
+    outputs1 = [host.run('systemctl start indy-node') for host in hosts[:-1]]
+    print(outputs1)
+
+    assert res['result']['seqNo'] is not None
+
+    print(res)
+
+
+@pytest.mark.asyncio
+async def test_misc_stn_slowness():
+    await pool.set_protocol_version(2)
+    nodes = ['australia', 'brazil', 'canada', 'england', 'korea']
+    for i in range(1):
+        # for node in nodes:
+            pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=nodes)
+            # pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[].append(node))
+
+            t1 = time.perf_counter()
+            req1 = await ledger.build_get_schema_request(None,
+                                                         'Rvk7x5oSFwoLWZK8rM1Anf:2:Passport Office1539941790480:1.0')
+            schema_build_time = time.perf_counter() - t1
+            await ledger.submit_request(pool_handle, req1)
+            schema_submit_time = time.perf_counter() - t1 - schema_build_time
+            print('ITERATION: ', i, '\t', 'NODE: ', nodes, '\t',
+                  'SCHEMA BUILD TIME: ', schema_build_time, '\t', 'SCHEMA SUBMIT TIME: ', schema_submit_time)
+
+            t2 = time.perf_counter()
+            req2 = await ledger.build_get_cred_def_request(None, 'Rvk7x5oSFwoLWZK8rM1Anf:3:CL:9726:tag1')
+            cred_def_build_time = time.perf_counter() - t2
+            await ledger.submit_request(pool_handle, req2)
+            cred_def_submit_time = time.perf_counter() - t2 - cred_def_build_time
+            print('ITERATION: ', i, '\t', 'NODE: ', nodes, '\t',
+                  'CRED DEF BUILD TIME: ', cred_def_build_time, '\t', 'CRED DEF SUBMIT TIME: ', cred_def_submit_time)

@@ -90,11 +90,12 @@ async def test_misc_state_proof():
 @pytest.mark.asyncio
 async def test_misc_stn_slowness():
     await pool.set_protocol_version(2)
-    nodes = ['australia', 'brazil', 'canada', 'england', 'korea']
+    nodes = ['NodeTwinPeek', 'RFCU', 'australia', 'brazil', 'canada', 'england', 'ibmTest', 'korea', 'lab10',
+             'singapore', 'virginia', 'vnode1', 'xsvalidatorec2irl']
     for i in range(1):
-        # for node in nodes:
-            pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=nodes)
-            # pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[].append(node))
+        for node in nodes:
+            # pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=nodes)
+            pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[].append(node))
 
             t1 = time.perf_counter()
             req1 = await ledger.build_get_schema_request(None,
@@ -102,7 +103,7 @@ async def test_misc_stn_slowness():
             schema_build_time = time.perf_counter() - t1
             await ledger.submit_request(pool_handle, req1)
             schema_submit_time = time.perf_counter() - t1 - schema_build_time
-            print('ITERATION: ', i, '\t', 'NODE: ', nodes, '\t',
+            print('ITERATION: ', i, '\t', 'NODE: ', node, '\t',
                   'SCHEMA BUILD TIME: ', schema_build_time, '\t', 'SCHEMA SUBMIT TIME: ', schema_submit_time)
 
             t2 = time.perf_counter()
@@ -110,5 +111,5 @@ async def test_misc_stn_slowness():
             cred_def_build_time = time.perf_counter() - t2
             await ledger.submit_request(pool_handle, req2)
             cred_def_submit_time = time.perf_counter() - t2 - cred_def_build_time
-            print('ITERATION: ', i, '\t', 'NODE: ', nodes, '\t',
+            print('ITERATION: ', i, '\t', 'NODE: ', node, '\t',
                   'CRED DEF BUILD TIME: ', cred_def_build_time, '\t', 'CRED DEF SUBMIT TIME: ', cred_def_submit_time)

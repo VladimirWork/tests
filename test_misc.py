@@ -75,6 +75,8 @@ async def test_misc_state_proof():
         {'seed': '000000000000000000000000Trustee1'}))
     random_did = random_did_and_json()[0]
     await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
+    schema_id, _ = await schema_helper(pool_handle, wallet_handle, trustee_did, random_string(10), '1.0',
+                                       json.dumps([random_string(1), random_string(2), random_string(3)]))
 
     hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     print(hosts)
@@ -83,15 +85,20 @@ async def test_misc_state_proof():
 
     time.sleep(1)
     try:
-        req = await ledger.build_get_nym_request(None, random_did)
-        res = json.loads(await ledger.submit_request(pool_handle, req))
+        req1 = await ledger.build_get_nym_request(None, random_did)
+        res1 = json.loads(await ledger.submit_request(pool_handle, req1))
+
+        req2 = await ledger.build_get_schema_request(None, schema_id)
+        res2 = json.loads(await ledger.submit_request(pool_handle, req2))
     finally:
         outputs1 = [host.run('systemctl start indy-node') for host in hosts[:-1]]
         print(outputs1)
 
-    assert res['result']['seqNo'] is not None
+    assert res1['result']['seqNo'] is not None
+    assert res2['result']['seqNo'] is not None
 
-    print(res)
+    print(res1)
+    print(res2)
 
 
 @pytest.mark.asyncio

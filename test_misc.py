@@ -4,6 +4,7 @@ import logging
 from indy import did, IndyError
 from utils import *
 import testinfra
+import numpy as np
 
 # logger = logging.getLogger(__name__)
 # logging.basicConfig(level=0, format='%(asctime)s %(message)s')
@@ -77,7 +78,11 @@ async def test_misc_state_proof():
     await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
     schema_id, _ = await schema_helper(pool_handle, wallet_handle, trustee_did, random_string(10), '1.0',
                                        json.dumps([random_string(1), random_string(2), random_string(3)]))
-
+    time.sleep(1)
+    res = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    schema_id, schema_json = await ledger.parse_get_schema_response(res)
+    cred_def_id, _, _ = await cred_def_helper(pool_handle, wallet_handle, trustee_did, schema_json, random_string(3),
+                                              None, json.dumps({'support_revocation': True}))
     hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     print(hosts)
     outputs0 = [host.run('systemctl stop indy-node') for host in hosts[:-1]]
@@ -90,25 +95,31 @@ async def test_misc_state_proof():
 
         req2 = await ledger.build_get_schema_request(None, schema_id)
         res2 = json.loads(await ledger.submit_request(pool_handle, req2))
+
+        req3 = await ledger.build_get_cred_def_request(None, cred_def_id)
+        res3 = json.loads(await ledger.submit_request(pool_handle, req3))
     finally:
         outputs1 = [host.run('systemctl start indy-node') for host in hosts[:-1]]
         print(outputs1)
 
     assert res1['result']['seqNo'] is not None
     assert res2['result']['seqNo'] is not None
+    assert res3['result']['seqNo'] is not None
 
     print(res1)
     print(res2)
+    print(res3)
 
 
 @pytest.mark.asyncio
 async def test_misc_stn_slowness():
     await pool.set_protocol_version(2)
+    schema_timings = []
+    cred_def_timings = []
     nodes = ['NodeTwinPeek', 'RFCU', 'australia', 'brazil', 'canada', 'england', 'ibmTest', 'korea', 'lab10',
              'singapore', 'virginia', 'vnode1', 'xsvalidatorec2irl']
     for i in range(10):
         for node in nodes:
-            # pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=nodes)
             pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[node, ])
 
             t1 = time.perf_counter()
@@ -117,6 +128,7 @@ async def test_misc_stn_slowness():
             schema_build_time = time.perf_counter() - t1
             await ledger.submit_request(pool_handle, req1)
             schema_submit_time = time.perf_counter() - t1 - schema_build_time
+            schema_timings.append(schema_submit_time)
             print('ITERATION: ', i, '\t', 'NODE: ', node, '\t',
                   'SCHEMA BUILD TIME: ', schema_build_time, '\t', 'SCHEMA SUBMIT TIME: ', schema_submit_time)
 
@@ -125,5 +137,9 @@ async def test_misc_stn_slowness():
             cred_def_build_time = time.perf_counter() - t2
             await ledger.submit_request(pool_handle, req2)
             cred_def_submit_time = time.perf_counter() - t2 - cred_def_build_time
+            cred_def_timings.append(cred_def_submit_time)
             print('ITERATION: ', i, '\t', 'NODE: ', node, '\t',
                   'CRED DEF BUILD TIME: ', cred_def_build_time, '\t', 'CRED DEF SUBMIT TIME: ', cred_def_submit_time)
+
+    print('SCHEMA_SUBMIT_AVG', np.average(schema_timings))
+    print('CRED_DEF_SUBMIT_AVG', np.average(cred_def_timings))

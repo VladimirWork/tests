@@ -1,6 +1,6 @@
 import pytest
 import time
-# import logging
+import logging
 from indy import did, IndyError
 from utils import *
 import testinfra
@@ -70,17 +70,24 @@ async def test_misc_get_txn_by_seqno():
 async def test_misc_state_proof():
     await pool.set_protocol_version(2)
     pool_handle, _ = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    random_did = random_did_and_json()[0]
+    await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
+
     hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     print(hosts)
     outputs0 = [host.run('systemctl stop indy-node') for host in hosts[:-1]]
     print(outputs0)
 
     time.sleep(1)
-    req = await ledger.build_get_nym_request(None, 'V4SGRU86Z58d6TV7PBUe7f')
-    res = json.loads(await ledger.submit_request(pool_handle, req))
-
-    outputs1 = [host.run('systemctl start indy-node') for host in hosts[:-1]]
-    print(outputs1)
+    try:
+        req = await ledger.build_get_nym_request(None, random_did)
+        res = json.loads(await ledger.submit_request(pool_handle, req))
+    finally:
+        outputs1 = [host.run('systemctl start indy-node') for host in hosts[:-1]]
+        print(outputs1)
 
     assert res['result']['seqNo'] is not None
 
@@ -92,7 +99,7 @@ async def test_misc_stn_slowness():
     await pool.set_protocol_version(2)
     nodes = ['NodeTwinPeek', 'RFCU', 'australia', 'brazil', 'canada', 'england', 'ibmTest', 'korea', 'lab10',
              'singapore', 'virginia', 'vnode1', 'xsvalidatorec2irl']
-    for i in range(1):
+    for i in range(5):
         for node in nodes:
             # pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=nodes)
             pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[].append(node))

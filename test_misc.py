@@ -106,10 +106,10 @@ async def test_misc_stn_slowness():
     await pool.set_protocol_version(2)
     nodes = ['NodeTwinPeek', 'RFCU', 'australia', 'brazil', 'canada', 'england', 'ibmTest', 'korea', 'lab10',
              'singapore', 'virginia', 'vnode1', 'xsvalidatorec2irl']
-    for i in range(5):
+    for i in range(10):
         for node in nodes:
             # pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=nodes)
-            pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[].append(node))
+            pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[node, ])
 
             t1 = time.perf_counter()
             req1 = await ledger.build_get_schema_request(None,

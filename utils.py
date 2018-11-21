@@ -34,7 +34,7 @@ async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis', node_l
         pool_config = json.dumps({"genesis_txn": path_to_genesis, "preordered_nodes": node_list})
     else:
         pool_config = json.dumps({"genesis_txn": path_to_genesis})
-    print(pool_config)
+    # print(pool_config)
     await pool.create_pool_ledger_config(pool_name, pool_config)
     pool_handle = await pool.open_pool_ledger(pool_name, pool_config)
 

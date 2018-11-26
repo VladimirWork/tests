@@ -12,7 +12,7 @@ import testinfra
 async def test_pool_upgrade_positive():
     await pool.set_protocol_version(2)
     init_time = -20
-    version = '1.6.682'
+    version = '1.6.700'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
     action = 'start'
     _sha256 = hashlib.sha256().hexdigest()

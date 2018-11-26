@@ -6,8 +6,8 @@ from utils import *
 import testinfra
 import numpy as np
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=0, format='%(asctime)s %(message)s')
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(level=0, format='%(asctime)s %(message)s')
 
 
 @pytest.mark.asyncio

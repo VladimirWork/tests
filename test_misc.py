@@ -53,11 +53,13 @@ async def test_misc_get_nonexistent():
         await ledger.parse_get_revoc_reg_delta_response(res5)
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_misc_wallet():
     await wallet_helper('cba', 'cba')
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_misc_get_txn_by_seqno():
     await pool.set_protocol_version(2)
@@ -120,7 +122,7 @@ async def test_misc_stn_slowness():
              'singapore', 'virginia', 'vnode1', 'xsvalidatorec2irl']
     for i in range(10):
         for node in nodes:
-            pool_handle, _ = await pool_helper(path_to_genesis='/home/indy/stn_genesis', node_list=[node, ])
+            pool_handle, _ = await pool_helper(path_to_genesis='./stn_genesis', node_list=[node, ])
 
             t1 = time.perf_counter()
             req1 = await ledger.build_get_schema_request(None,
@@ -143,3 +145,6 @@ async def test_misc_stn_slowness():
 
     print('SCHEMA_SUBMIT_AVG', np.average(schema_timings))
     print('CRED_DEF_SUBMIT_AVG', np.average(cred_def_timings))
+
+    assert np.average(schema_timings) < 1.5
+    assert np.average(cred_def_timings) < 0.5

@@ -26,8 +26,8 @@ async def test_pool_upgrade_positive():
              'FTBmYnhxVd8zXZFRzca5WFKh7taW9J573T8pXEWL8Wbb', 'EjZrHfLTBR38d67HasBxpyKRBvrPBJ5RiAMubPWXLxWr',
              'koKn32jREPYR642DQsFftPoCkTf3XCPcfvc3x9RhRK7'
              ]
-    init_time = -150
-    version = '1.6.710'
+    init_time = 1
+    version = '1.6.79'
     status = 'Active: active (running)'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
     action = 'start'
@@ -43,8 +43,8 @@ async def test_pool_upgrade_positive():
             datetime.strftime(datetime.now(tz=timezone.utc) + timedelta(minutes=init_time+i*5), '%Y-%m-%dT%H:%M:%S%z')
          for dest, i in zip(dests, range(len(dests)))}
     ))
-    reinstall = True
-    force = True
+    reinstall = False
+    force = False
     # package = 'indy-node'
     pool_handle, _ = await pool_helper(path_to_genesis='./docker_genesis')
     wallet_handle, _, _ = await wallet_helper()
@@ -54,12 +54,13 @@ async def test_pool_upgrade_positive():
         {'seed': '000000000000000000000000Trustee1'}))
     # add NYM before the upgrade
     add_before = json.loads(await nym_helper(pool_handle, wallet_handle, trustee_did, random_did))
+
     req = await ledger.build_pool_upgrade_request(trustee_did, name, version, action, _sha256, _timeout,
                                                   docker_4_schedule, None, reinstall, force, None)
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(120)
+    time.sleep(60*25)
 
     docker_4_hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     # aws_25_hosts = [testinfra.get_host('ssh://auto_node'+str(i),
@@ -78,6 +79,7 @@ async def test_pool_upgrade_positive():
     print(status_checks)
     # read NYM that was added before the upgrade
     get_after_old = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did))
+
     # add NYM after the upgrade
     add_after = json.loads(await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did))
     # read NYM that was added after the upgrade

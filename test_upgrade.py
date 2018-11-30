@@ -11,6 +11,7 @@ import os
 
 @pytest.mark.asyncio
 async def test_pool_upgrade_positive():
+    timestamp0 = int(time.time())
     await pool.set_protocol_version(2)
     dests = ['Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv', '8ECVSk179mjsjKRLWiQtssMLgp6EPhWXtaYyStWPSGAb',
              'DKVxG2fXXTU8yT5N7hGEbXB3dfdAnYv1JczDUHpmDxya', '4PS3EDQ3dW1tci1Bp6543CfuuebjFrg36kLAUcskGfaA',
@@ -26,7 +27,7 @@ async def test_pool_upgrade_positive():
              'FTBmYnhxVd8zXZFRzca5WFKh7taW9J573T8pXEWL8Wbb', 'EjZrHfLTBR38d67HasBxpyKRBvrPBJ5RiAMubPWXLxWr',
              'koKn32jREPYR642DQsFftPoCkTf3XCPcfvc3x9RhRK7'
              ]
-    init_time = 1
+    init_time = -20
     version = '1.6.79'
     status = 'Active: active (running)'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
@@ -44,7 +45,7 @@ async def test_pool_upgrade_positive():
          for dest, i in zip(dests, range(len(dests)))}
     ))
     reinstall = False
-    force = False
+    force = True
     # package = 'indy-node'
     pool_handle, _ = await pool_helper(path_to_genesis='./docker_genesis')
     wallet_handle, _, _ = await wallet_helper()
@@ -52,15 +53,39 @@ async def test_pool_upgrade_positive():
     another_random_did = random_did_and_json()[0]
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
-    # add NYM before the upgrade
-    add_before = json.loads(await nym_helper(pool_handle, wallet_handle, trustee_did, random_did))
+
+    # add all txns before the upgrade
+    nym_before_res = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
+    attrib_before_res = await attrib_helper(pool_handle, wallet_handle, trustee_did, random_did, None,
+                                            json.dumps({'key': 'value'}), None)
+    schema_id, schema_before_res = await schema_helper(pool_handle, wallet_handle, trustee_did,
+                                                       'schema_name_upgrade_case', '1.0',
+                                                       json.dumps(["age", "sex", "height", "name"]))
+    temp = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    schema_id, schema_json = await ledger.parse_get_schema_response(json.dumps(temp))
+
+    cred_def_id, _, cred_def_before_res =\
+        await cred_def_helper(pool_handle, wallet_handle, trustee_did, schema_json, 'cred_def_tag_upgrade_case', 'CL',
+                              json.dumps({'support_revocation': True}))
+
+    revoc_reg_def_id, _, _, revoc_reg_def_before_res =\
+        await revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, 'CL_ACCUM', 'revoc_def_tag1_upgrade_case',
+                                   cred_def_id,
+                                   json.dumps({'max_cred_num': 1, 'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
+
+    _, _, _, revoc_reg_entry_before_res =\
+        await revoc_reg_entry_helper(pool_handle, wallet_handle, trustee_did, 'CL_ACCUM', 'revoc_def_tag2_upgrade_case',
+                                     cred_def_id,
+                                     json.dumps({'max_cred_num': 1, 'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
+
+    timestamp1 = int(time.time())
 
     req = await ledger.build_pool_upgrade_request(trustee_did, name, version, action, _sha256, _timeout,
                                                   docker_4_schedule, None, reinstall, force, None)
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(60*25)
+    time.sleep(120)
 
     docker_4_hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     # aws_25_hosts = [testinfra.get_host('ssh://auto_node'+str(i),
@@ -77,18 +102,30 @@ async def test_pool_upgrade_positive():
     print(version_checks)
     status_checks = [output.stdout.find(status) for output in status_outputs]
     print(status_checks)
-    # read NYM that was added before the upgrade
-    get_after_old = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did))
 
-    # add NYM after the upgrade
-    add_after = json.loads(await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did))
-    # read NYM that was added after the upgrade
-    get_after_new = json.loads(await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did))
+    # read all txns that were added before the upgrade
+    get_nym_after_res = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
+    get_attrib_after_res = await get_attrib_helper(pool_handle, wallet_handle, trustee_did, random_did,
+                                                   None, 'key', None)
+    get_schema_after_res = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    get_cred_def_after_res = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did, cred_def_id)
+    get_revoc_reg_def_after_res =\
+        await get_revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id)
+    get_revoc_reg_after_res =\
+        await get_revoc_reg_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id, timestamp1)
+    get_revoc_reg_delta_after_res =\
+        await get_revoc_reg_delta_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id,
+                                         timestamp0, timestamp1)
+    add_before_results = [nym_before_res, attrib_before_res, schema_before_res, cred_def_before_res,
+                          revoc_reg_def_before_res, revoc_reg_entry_before_res]
+    get_after_results = [get_nym_after_res, get_attrib_after_res, get_schema_after_res, get_cred_def_after_res,
+                         get_revoc_reg_def_after_res, get_revoc_reg_after_res, get_revoc_reg_delta_after_res]
 
-    assert add_before['op'] == 'REPLY'
-    assert add_after['op'] == 'REPLY'
-    assert get_after_old['result']['seqNo'] is not None
-    assert get_after_new['result']['seqNo'] is not None
+    for res in add_before_results:
+        assert res['op'] == 'REPLY'
+
+    for res in get_after_results:
+        assert res['result']['seqNo'] is not None
 
     for check in version_checks:
         assert check is not -1

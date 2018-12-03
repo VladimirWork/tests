@@ -11,8 +11,8 @@ import os
 
 @pytest.mark.asyncio
 async def test_pool_upgrade_positive():
-    timestamp0 = int(time.time())
     await pool.set_protocol_version(2)
+    timestamp0 = int(time.time())
     dests = ['Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv', '8ECVSk179mjsjKRLWiQtssMLgp6EPhWXtaYyStWPSGAb',
              'DKVxG2fXXTU8yT5N7hGEbXB3dfdAnYv1JczDUHpmDxya', '4PS3EDQ3dW1tci1Bp6543CfuuebjFrg36kLAUcskGfaA',
              '4SWokCJWJc69Tn74VvLS6t2G2ucvXqM9FDMsWJjmsUxe', 'Cv1Ehj43DDM5ttNBmC6VPpEfwXWwfGktHwjDJsTV5Fz8',
@@ -27,7 +27,7 @@ async def test_pool_upgrade_positive():
              'FTBmYnhxVd8zXZFRzca5WFKh7taW9J573T8pXEWL8Wbb', 'EjZrHfLTBR38d67HasBxpyKRBvrPBJ5RiAMubPWXLxWr',
              'koKn32jREPYR642DQsFftPoCkTf3XCPcfvc3x9RhRK7'
              ]
-    init_time = -20
+    init_time = 1
     version = '1.6.79'
     status = 'Active: active (running)'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
@@ -45,9 +45,9 @@ async def test_pool_upgrade_positive():
          for dest, i in zip(dests, range(len(dests)))}
     ))
     reinstall = False
-    force = True
+    force = False
     # package = 'indy-node'
-    pool_handle, _ = await pool_helper(path_to_genesis='./docker_genesis')
+    pool_handle, _ = await pool_helper(path_to_genesis='./aws_genesis')
     wallet_handle, _, _ = await wallet_helper()
     random_did = random_did_and_json()[0]
     another_random_did = random_did_and_json()[0]
@@ -68,34 +68,34 @@ async def test_pool_upgrade_positive():
         await cred_def_helper(pool_handle, wallet_handle, trustee_did, schema_json, 'cred_def_tag_upgrade_case', 'CL',
                               json.dumps({'support_revocation': True}))
 
-    revoc_reg_def_id, _, _, revoc_reg_def_before_res =\
+    revoc_reg_def_id1, _, _, revoc_reg_def_before_res =\
         await revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, 'CL_ACCUM', 'revoc_def_tag1_upgrade_case',
                                    cred_def_id,
                                    json.dumps({'max_cred_num': 1, 'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
 
-    _, _, _, revoc_reg_entry_before_res =\
+    revoc_reg_def_id2, _, _, revoc_reg_entry_before_res =\
         await revoc_reg_entry_helper(pool_handle, wallet_handle, trustee_did, 'CL_ACCUM', 'revoc_def_tag2_upgrade_case',
                                      cred_def_id,
                                      json.dumps({'max_cred_num': 1, 'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
-
     timestamp1 = int(time.time())
 
+    # schedule pool upgrade
     req = await ledger.build_pool_upgrade_request(trustee_did, name, version, action, _sha256, _timeout,
-                                                  docker_4_schedule, None, reinstall, force, None)
+                                                  aws_25_schedule, None, reinstall, force, None)
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(120)
+    time.sleep(7700)
 
     docker_4_hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
-    # aws_25_hosts = [testinfra.get_host('ssh://auto_node'+str(i),
-    #                                    ssh_config='/home/indy/indy-node/pool_automation/auto/.ssh/ssh_config')
-    #                 for i in range(1, 26)]
-    print(docker_4_hosts)
-    # os.chdir('/home/indy/indy-node/pool_automation/auto/.ssh/')
-    version_outputs = [host.run('dpkg -l | grep indy-node') for host in docker_4_hosts]
+    aws_25_hosts = [testinfra.get_host('ssh://auto_node'+str(i),
+                                       ssh_config='/home/indy/indy-node/pool_automation/auto/.ssh/ssh_config')
+                    for i in range(1, 26)]
+    print(aws_25_hosts)
+    os.chdir('/home/indy/indy-node/pool_automation/auto/.ssh/')
+    version_outputs = [host.run('dpkg -l | grep indy-node') for host in aws_25_hosts]
     print(version_outputs)
-    status_outputs = [host.run('systemctl status indy-node') for host in docker_4_hosts]
+    status_outputs = [host.run('systemctl status indy-node') for host in aws_25_hosts]
     print(status_outputs)
     os.chdir('/home/indy/PycharmProjects/tests')
     version_checks = [output.stdout.find(version) for output in version_outputs]
@@ -110,11 +110,11 @@ async def test_pool_upgrade_positive():
     get_schema_after_res = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
     get_cred_def_after_res = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did, cred_def_id)
     get_revoc_reg_def_after_res =\
-        await get_revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id)
+        await get_revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id1)
     get_revoc_reg_after_res =\
-        await get_revoc_reg_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id, timestamp1)
+        await get_revoc_reg_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id2, timestamp1)
     get_revoc_reg_delta_after_res =\
-        await get_revoc_reg_delta_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id,
+        await get_revoc_reg_delta_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id2,
                                          timestamp0, timestamp1)
     add_before_results = [nym_before_res, attrib_before_res, schema_before_res, cred_def_before_res,
                           revoc_reg_def_before_res, revoc_reg_entry_before_res]

@@ -27,7 +27,7 @@ def random_seed_and_json():
         json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
-async def pool_helper(pool_name=None, path_to_genesis='./aws_genesis', node_list=None):
+async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis', node_list=None):
     if not pool_name:
         pool_name = random_string(5)
     if node_list:

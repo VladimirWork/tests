@@ -97,7 +97,7 @@ async def test_libsovtoken_acceptance():
 
     # send schema, no tokens
     _, res = await schema_helper(pool_handle, wallet_handle, trustee_did1, 'gvt', '1.0', json.dumps(["name", "age"]))
-    assert json.loads(res)['op'] == 'REJECT'
+    assert res['op'] == 'REJECT'
 
     # send schema, enough tokens
     schema_id, schema_json = \
@@ -112,7 +112,7 @@ async def test_libsovtoken_acceptance():
     res6 = await get_schema_helper(pool_handle, wallet_handle, trustee_did1, schema_id)
 
     # cred_def incorrect
-    schema_id, schema_json = await ledger.parse_get_schema_response(res6)
+    schema_id, schema_json = await ledger.parse_get_schema_response(json.dumps(res6))
     cred_def_id, cred_def_json = \
         await anoncreds.issuer_create_and_store_credential_def(wallet_handle, trustee_did1, schema_json, 'TAG',
                                                                'CL', json.dumps({'support_revocation': False}))
@@ -151,11 +151,3 @@ async def test_libsovtoken_acceptance():
     res = await did.replace_keys_apply(wallet_handle, trustee_did2)
     res11 = await did.key_for_local_did(wallet_handle, trustee_did2)
     assert res11 != res10
-
-    # timestamp0 = int(time.time())
-    # revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json, res = await revoc_reg_def_helper(pool_handle, wallet_handle, submitter_did, revoc_def_type, tag, cred_def_id, config_json)
-
-    # revoc_reg_def_id, revoc_reg_def_json, revoc_reg_entry_json, res = await revoc_reg_entry_helper(pool_handle, wallet_handle, submitter_did, revoc_def_type, tag, cred_def_id, config_json)
-
-    # assert res0['op'] == 'REPLY'
-    # assert res0['result']['txnMetadata']['seqNo'] is not None

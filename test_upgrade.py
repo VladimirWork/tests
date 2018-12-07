@@ -40,7 +40,7 @@ async def test_pool_upgrade_positive():
                         '6CRQcKzeRMCstErDT2Pso4he3rWWu1m16CRyp1fjYCFx', '53skV1LWLCbcxxdvoxY3pKDx2MAvszA27hA6cBZxLbnf',
                         'CbW92yCBgTMKquvsSRzDn5aA5uHzWZfP85bcW6RUK4hk', 'H5cW9eWhcBSEHfaAVkqP5QNa11m6kZ9zDyRXQZDBoSpq',
                         'DE8JMTgA7DaieF9iGKAyy5yvsZovroHr3SMEoDnbgFcp']
-    init_time = 3
+    init_time = -20
     version = '1.1.32'
     status = 'Active: active (running)'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
@@ -98,7 +98,7 @@ async def test_pool_upgrade_positive():
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(390)
+    time.sleep(90)
 
     docker_4_hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     aws_25_hosts = [testinfra.get_host('ssh://persistent_node'+str(i),
@@ -110,7 +110,7 @@ async def test_pool_upgrade_positive():
     print(version_outputs)
     status_outputs = [host.run('systemctl status indy-node') for host in docker_4_hosts]
     print(status_outputs)
-    os.chdir('/home/indy/PycharmProjects/tests')
+    # os.chdir('/home/indy/PycharmProjects/tests')
     version_checks = [output.stdout.find(version) for output in version_outputs]
     print(version_checks)
     status_checks = [output.stdout.find(status) for output in status_outputs]

@@ -55,7 +55,7 @@ async def test_pool_upgrade_positive():
     aws_25_schedule = json.dumps(dict(
         {dest:
             datetime.strftime(datetime.now(tz=timezone.utc) + timedelta(minutes=init_time+i*5), '%Y-%m-%dT%H:%M:%S%z')
-         for dest, i in zip(dests, range(len(dests)))}
+         for dest, i in zip(persistent_dests, range(len(persistent_dests)))}
     ))
     reinstall = False
     force = False
@@ -132,6 +132,7 @@ async def test_pool_upgrade_positive():
 
     # write and read NYM after the upgrade
     nym = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
+    time.sleep(1)
     get_nym = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
 
     add_before_results = [nym_before_res, attrib_before_res, schema_before_res, cred_def_before_res,

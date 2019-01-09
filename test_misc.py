@@ -339,3 +339,32 @@ async def test_misc_temp():
 @pytest.mark.asyncio
 async def test_misc_pool_config():
     await pool.set_protocol_version(2)
+    pool_handle, _ = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, new_steward_vk, 'steward', 'STEWARD')
+
+    res0 = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did_and_json()[0])
+    assert res0['op'] == 'REPLY'
+
+    data = json.dumps(
+            {
+                  'alias': random_string(5),
+                  'client_ip': '{}.{}.{}.{}'.format(rr(1, 255), 0, 0, rr(1, 255)),
+                  'client_port': rr(1, 32767),
+                  'node_ip': '{}.{}.{}.{}'.format(rr(1, 255), 0, 0, rr(1, 255)),
+                  'node_port': rr(1, 32767),
+                  'services': ['VALIDATOR']
+            })
+    req = await ledger.build_node_request(new_steward_did, 'koKn32jREPYR642DQsFftPoCkTf3XCPcfvc3x9RhRK7', data)
+    res1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, new_steward_did, req))
+    assert res1['op'] == 'REPLY'
+
+    req = await ledger.build_pool_config_request(trustee_did, True, False)
+    res2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    assert res2['op'] == 'REPLY'
+
+    res3 = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did_and_json()[0])
+    assert res3['op'] == 'REPLY'

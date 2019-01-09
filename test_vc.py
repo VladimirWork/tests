@@ -16,7 +16,7 @@ async def test_vc_by_restart():
     another_random_did = random_did_and_json()[0]
 
     add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
-    time.sleep(0.5)
+    time.sleep(1)
     get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
 
     print(add_before, '\n', get_before)
@@ -39,7 +39,7 @@ async def test_vc_by_restart():
     print(cmd)
 
     add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
-    time.sleep(0.5)
+    time.sleep(1)
     get_after = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
 
     print(add_after, '\n', get_after)
@@ -70,16 +70,16 @@ async def test_vc_by_demotion():
     another_random_did = random_did_and_json()[0]
 
     add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
-    time.sleep(0.5)
+    time.sleep(1)
     get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
 
     print(add_before, '\n', get_before)
 
     req_vi = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req_vi))
-    result = json.loads(results['Node1'])
+    result = json.loads(results['Node7'])
     primary_before =\
-        result['result']['data']['Node_info']['Replicas_status']['Node1:0']['Primary'][len('Node'):-len(':0')]
+        result['result']['data']['Node_info']['Replicas_status']['Node7:0']['Primary'][len('Node'):-len(':0')]
     res = json.loads(results['Node'+primary_before])
     target_did = res['result']['data']['Node_info']['did']
     alias = res['result']['data']['Node_info']['Name']
@@ -90,7 +90,7 @@ async def test_vc_by_demotion():
     time.sleep(120)
 
     add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
-    time.sleep(0.5)
+    time.sleep(1)
     get_after = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
 
     print(add_after, '\n', get_after)
@@ -99,9 +99,9 @@ async def test_vc_by_demotion():
     req = await ledger.build_node_request(trustee_did, target_did, data)
     await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req)
     results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req_vi))
-    result = json.loads(results['Node1'])
+    result = json.loads(results['Node7'])
     primary_after =\
-        result['result']['data']['Node_info']['Replicas_status']['Node1:0']['Primary'][len('Node'):-len(':0')]
+        result['result']['data']['Node_info']['Replicas_status']['Node7:0']['Primary'][len('Node'):-len(':0')]
 
     assert add_before['op'] == 'REPLY'
     assert get_before['result']['seqNo'] is not None

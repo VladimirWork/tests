@@ -26,7 +26,6 @@ async def test_vc_by_restart():
     result = json.loads(results['Node7'])
     primary_before =\
         result['result']['data']['Node_info']['Replicas_status']['Node7:0']['Primary'][len('Node'):-len(':0')]
-    print(primary_before)
     # host = testinfra.get_host('ssh://ubuntu@perf_node'+primary_before, ssh_config='/home/indy/.ssh/config')
     # with host.sudo():
     #     cmd = host.run('systemctl restart indy-node')
@@ -34,7 +33,7 @@ async def test_vc_by_restart():
     cmd = host.run('systemctl stop indy-node')
     print(cmd)
 
-    time.sleep(120)
+    time.sleep(180)
     cmd = host.run('systemctl start indy-node')
     print(cmd)
 
@@ -56,6 +55,7 @@ async def test_vc_by_restart():
     assert get_after['result']['seqNo'] is not None
     assert primary_before != primary_after
 
+    print(primary_before)
     print(primary_after)
 
 
@@ -87,7 +87,7 @@ async def test_vc_by_demotion():
     req = await ledger.build_node_request(trustee_did, target_did, data)
     await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req)
 
-    time.sleep(120)
+    time.sleep(180)
 
     add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
     time.sleep(1)

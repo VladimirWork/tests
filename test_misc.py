@@ -202,3 +202,25 @@ async def test_new_role():
     print(res_nm)
 
     assert res_t == res_s == res_nm
+
+    # NETWORK_MONITOR adds user NYM - should fail
+    add_nym = await nym_helper(pool_handle, wallet_handle, did1, did5, vk5, None, None)
+    assert add_nym['op'] == 'REJECT'
+    # NETWORK_MONITOR sends pool restart - should fail
+    req = await ledger.build_pool_restart_request(did1, 'start', '0')
+    pool_restart = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    assert pool_restart['op'] == 'REJECT'
+    # NETWORK_MONITOR sends pool config - should fail
+    req = await ledger.build_pool_config_request(did1, False, True)
+    pool_config = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    assert pool_config['op'] == 'REJECT'
+
+    # Trust Anchor removes NETWORK_MONITOR role - should fail
+    res6 = await nym_helper(pool_handle, wallet_handle, anchor_did, did1, vk1, None, None)
+    assert res6['op'] == 'REJECT'
+    # Trustee removes NETWORK_MONITOR role (that was added by Steward)
+    res7 = await nym_helper(pool_handle, wallet_handle, trustee_did, did2, vk2, None, None)
+    assert res7['op'] == 'REPLY'
+    # Steward removes NETWORK_MONITOR role (that was added by Trustee)
+    res8 = await nym_helper(pool_handle, wallet_handle, steward_did, did1, vk1, None, None)
+    assert res8['op'] == 'REPLY'

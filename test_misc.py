@@ -81,7 +81,7 @@ async def test_misc_state_proof():
     schema_id, _ = await schema_helper(pool_handle, wallet_handle, trustee_did, random_string(10), '1.0',
                                        json.dumps([random_string(1), random_string(2), random_string(3)]))
     time.sleep(1)
-    res = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    res = json.dumps(await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id))
     schema_id, schema_json = await ledger.parse_get_schema_response(res)
     cred_def_id, _, _ = await cred_def_helper(pool_handle, wallet_handle, trustee_did, schema_json, random_string(3),
                                               None, json.dumps({'support_revocation': True}))

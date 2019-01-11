@@ -148,3 +148,57 @@ async def test_misc_stn_slowness():
 
     assert np.average(schema_timings) < 1.5
     assert np.average(cred_def_timings) < 0.5
+
+
+@pytest.mark.asyncio
+async def test_new_role():
+    # INDY-1916 / IS-1123
+    await pool.set_protocol_version(2)
+    pool_handle, _ = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    role_under_test = 'NETWORK_MONITOR'
+
+    did1, vk1 = await did.create_and_store_my_did(wallet_handle, '{}')
+    did2, vk2 = await did.create_and_store_my_did(wallet_handle, '{}')
+    did3, vk3 = await did.create_and_store_my_did(wallet_handle, '{}')
+    did4, vk4 = await did.create_and_store_my_did(wallet_handle, '{}')
+    did5, vk5 = await did.create_and_store_my_did(wallet_handle, '{}')
+
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    steward_did, steward_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Steward1'}))
+    anchor_did, anchor_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    await nym_helper(pool_handle, wallet_handle, trustee_did, anchor_did, anchor_vk, 'trust anchor', 'TRUST_ANCHOR')
+    user_did, user_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    await nym_helper(pool_handle, wallet_handle, trustee_did, user_did, user_vk, 'user without role', None)
+
+    # Trustee adds NETWORK_MONITOR NYM
+    res1 = await nym_helper(pool_handle, wallet_handle, trustee_did, did1, vk1, None, role_under_test)
+    assert res1['op'] == 'REPLY'
+    # Steward adds NETWORK_MONITOR NYM
+    res2 = await nym_helper(pool_handle, wallet_handle, steward_did, did2, vk2, None, role_under_test)
+    assert res2['op'] == 'REPLY'
+    # Trust Anchor adds NETWORK_MONITOR NYM - should fail
+    res3 = await nym_helper(pool_handle, wallet_handle, anchor_did, did3, vk3, None, role_under_test)
+    assert res3['op'] == 'REJECT'
+    # User adds NETWORK_MONITOR NYM - should fail
+    res4 = await nym_helper(pool_handle, wallet_handle, user_did, did4, vk4, None, role_under_test)
+    assert res4['op'] == 'REJECT'
+    # NETWORK_MONITOR adds NETWORK_MONITOR NYM - should fail
+    res5 = await nym_helper(pool_handle, wallet_handle, did1, did5, vk5, None, role_under_test)
+    assert res5['op'] == 'REJECT'
+
+    req = await ledger.build_get_validator_info_request(trustee_did)
+    res_t = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    print(res_t)
+
+    req = await ledger.build_get_validator_info_request(steward_did)
+    res_s = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, req))
+    print(res_s)
+
+    req = await ledger.build_get_validator_info_request(did1)
+    res_nm = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    print(res_nm)
+
+    assert res_t == res_s == res_nm

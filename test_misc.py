@@ -213,7 +213,7 @@ async def test_new_role():
     # NETWORK_MONITOR sends pool config - should fail
     req = await ledger.build_pool_config_request(did1, False, True)
     pool_config = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
-    assert pool_config['op'] == 'REJECT'
+    assert pool_config['op'] == 'REQNACK'
 
     # Trust Anchor removes NETWORK_MONITOR role - should fail
     res6 = await nym_helper(pool_handle, wallet_handle, anchor_did, did1, vk1, None, None)
@@ -233,25 +233,38 @@ async def test_misc_temp():
     wallet_handle, _, _ = await wallet_helper()
     did1, vk1 = await did.create_and_store_my_did(wallet_handle, '{}')
     did2, vk2 = await did.create_and_store_my_did(wallet_handle, '{}')
+    did3, vk3 = await did.create_and_store_my_did(wallet_handle, '{}')
     did5, vk5 = await did.create_and_store_my_did(wallet_handle, '{}')
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
     steward_did, steward_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Steward1'}))
+    anchor_did, anchor_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    await nym_helper(pool_handle, wallet_handle, trustee_did, anchor_did, anchor_vk, 'trust anchor', 'TRUST_ANCHOR')
 
     req1 = json.loads(await ledger.build_nym_request(trustee_did, did1, vk1, 'network monitor 1', role='TRUST_ANCHOR'))
     req1['operation']['role'] = '201'
-    res1 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, json.dumps(req1))
-    print(res1)
+    res1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, json.dumps(req1)))
+    assert res1['op'] == 'REPLY'
     req = await ledger.build_get_validator_info_request(did1)
     res_nm1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    assert json.loads(res_nm1['Node1'])['op'] == json.loads(res_nm1['Node4'])['op'] == 'REPLY'
 
     req2 = json.loads(await ledger.build_nym_request(steward_did, did2, vk2, 'network monitor 2', role='TRUST_ANCHOR'))
     req2['operation']['role'] = '201'
-    res2 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, json.dumps(req2))
-    print(res2)
+    res2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, json.dumps(req2)))
+    assert res2['op'] == 'REPLY'
     req = await ledger.build_get_validator_info_request(did2)
     res_nm2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did2, req))
+    assert json.loads(res_nm2['Node1'])['op'] == json.loads(res_nm2['Node4'])['op'] == 'REPLY'
+
+    req3 = json.loads(await ledger.build_nym_request(anchor_did, did3, vk3, 'network monitor 3', role='TRUST_ANCHOR'))
+    req3['operation']['role'] = '201'
+    res3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, anchor_did, json.dumps(req3)))
+    assert res3['op'] == 'REJECT'
+    req = await ledger.build_get_validator_info_request(did3)
+    res_nm3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did3, req))
+    assert json.loads(res_nm3['Node1'])['op'] == json.loads(res_nm3['Node4'])['op'] == 'REQNACK'
 
     req_t = await ledger.build_get_validator_info_request(trustee_did)
     res_t = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req_t))
@@ -270,5 +283,5 @@ async def test_misc_temp():
     assert json.loads(pool_restart['Node1'])['op'] == json.loads(pool_restart['Node4'])['op'] == 'REJECT'
     # NETWORK_MONITOR sends pool config - should fail
     req = await ledger.build_pool_config_request(did1, False, True)
-    pool_config = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
-    assert pool_config['op'] == 'REQNACK'
+    pool_config1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    assert pool_config1['op'] == 'REQNACK'

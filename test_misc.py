@@ -234,6 +234,8 @@ async def test_misc_temp():
     did1, vk1 = await did.create_and_store_my_did(wallet_handle, '{}')
     did2, vk2 = await did.create_and_store_my_did(wallet_handle, '{}')
     did3, vk3 = await did.create_and_store_my_did(wallet_handle, '{}')
+    new_trustee_did, new_trustee_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     did5, vk5 = await did.create_and_store_my_did(wallet_handle, '{}')
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -285,3 +287,21 @@ async def test_misc_temp():
     req = await ledger.build_pool_config_request(did1, False, True)
     pool_config1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
     assert pool_config1['op'] == 'REQNACK'
+
+    # Trustee removes NETWORK_MONITOR role
+    res7 = await nym_helper(pool_handle, wallet_handle, trustee_did, did1, vk1, None, None)
+    # assert res7['op'] == 'REPLY'
+    # Steward removes NETWORK_MONITOR role
+    res8 = await nym_helper(pool_handle, wallet_handle, steward_did, did2, vk2, None, None)
+    # assert res8['op'] == 'REPLY'
+    # NM removes NETWORK_MONITOR role from itself
+    res9 = await nym_helper(pool_handle, wallet_handle, did1, did1, vk1, None, None)
+    assert res9['op'] == 'REPLY'
+
+    add_new_trustee = await nym_helper(pool_handle, wallet_handle, trustee_did, new_trustee_did, new_trustee_vk,
+                                       'new trustee', 'TRUSTEE')
+    add_new_steward = await nym_helper(pool_handle, wallet_handle, new_trustee_did, new_steward_did, new_steward_vk,
+                                       'new steward', 'STEWARD')
+    remove_new_steward_by_old_trustee = await nym_helper(pool_handle, wallet_handle, trustee_did,
+                                                         new_steward_did, new_steward_vk, None, None)
+    print(remove_new_steward_by_old_trustee)

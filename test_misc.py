@@ -216,13 +216,13 @@ async def test_new_role():
     assert pool_config['op'] == 'REQNACK'
 
     # Trust Anchor removes NETWORK_MONITOR role - should fail
-    res6 = await nym_helper(pool_handle, wallet_handle, anchor_did, did1, vk1, None, None)
+    res6 = await nym_helper(pool_handle, wallet_handle, anchor_did, did1, None, None, '')
     assert res6['op'] == 'REJECT'
     # Trustee removes NETWORK_MONITOR role (that was added by Steward)
-    res7 = await nym_helper(pool_handle, wallet_handle, trustee_did, did2, vk2, None, None)
+    res7 = await nym_helper(pool_handle, wallet_handle, trustee_did, did2, None, None, '')
     assert res7['op'] == 'REPLY'
     # Steward removes NETWORK_MONITOR role (that was added by Trustee)
-    res8 = await nym_helper(pool_handle, wallet_handle, steward_did, did1, vk1, None, None)
+    res8 = await nym_helper(pool_handle, wallet_handle, steward_did, did1, None, None, '')
     assert res8['op'] == 'REPLY'
 
 

@@ -234,38 +234,50 @@ async def test_misc_temp():
     did1, vk1 = await did.create_and_store_my_did(wallet_handle, '{}')
     did2, vk2 = await did.create_and_store_my_did(wallet_handle, '{}')
     did3, vk3 = await did.create_and_store_my_did(wallet_handle, '{}')
-    new_trustee_did, new_trustee_vk = await did.create_and_store_my_did(wallet_handle, '{}')
-    new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     did5, vk5 = await did.create_and_store_my_did(wallet_handle, '{}')
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
     steward_did, steward_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Steward1'}))
+    new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     anchor_did, anchor_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, new_steward_vk, 'steward', 'STEWARD')
     await nym_helper(pool_handle, wallet_handle, trustee_did, anchor_did, anchor_vk, 'trust anchor', 'TRUST_ANCHOR')
 
-    req1 = json.loads(await ledger.build_nym_request(trustee_did, did1, vk1, 'network monitor 1', role='TRUST_ANCHOR'))
-    req1['operation']['role'] = '201'
-    res1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, json.dumps(req1)))
+    req1 = json.dumps({'identifier': trustee_did, 'protocolVersion': 2, 'reqId': int(time.time()),
+                       'operation': {'alias': 'network monitor 1',
+                                     'type': '1',
+                                     'dest': did1,
+                                     'role': '201',
+                                     'verkey': vk1}})
+    res1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req1))
     assert res1['op'] == 'REPLY'
-    req = await ledger.build_get_validator_info_request(did1)
-    res_nm1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    req11 = await ledger.build_get_validator_info_request(did1)
+    res_nm1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req11))
     assert json.loads(res_nm1['Node1'])['op'] == json.loads(res_nm1['Node4'])['op'] == 'REPLY'
 
-    req2 = json.loads(await ledger.build_nym_request(steward_did, did2, vk2, 'network monitor 2', role='TRUST_ANCHOR'))
-    req2['operation']['role'] = '201'
-    res2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, json.dumps(req2)))
+    req2 = json.dumps({'identifier': steward_did, 'protocolVersion': 2, 'reqId': int(time.time()),
+                       'operation': {'alias': 'network monitor 2',
+                                     'type': '1',
+                                     'dest': did2,
+                                     'role': '201',
+                                     'verkey': vk2}})
+    res2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, req2))
     assert res2['op'] == 'REPLY'
-    req = await ledger.build_get_validator_info_request(did2)
-    res_nm2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did2, req))
+    req22 = await ledger.build_get_validator_info_request(did2)
+    res_nm2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did2, req22))
     assert json.loads(res_nm2['Node1'])['op'] == json.loads(res_nm2['Node4'])['op'] == 'REPLY'
 
-    req3 = json.loads(await ledger.build_nym_request(anchor_did, did3, vk3, 'network monitor 3', role='TRUST_ANCHOR'))
-    req3['operation']['role'] = '201'
-    res3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, anchor_did, json.dumps(req3)))
+    req3 = json.dumps({'identifier': anchor_did, 'protocolVersion': 2, 'reqId': int(time.time()),
+                       'operation': {'alias': 'network monitor 3',
+                                     'type': '1',
+                                     'dest': did3,
+                                     'role': '201',
+                                     'verkey': vk3}})
+    res3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, anchor_did, req3))
     assert res3['op'] == 'REJECT'
-    req = await ledger.build_get_validator_info_request(did3)
-    res_nm3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did3, req))
+    req33 = await ledger.build_get_validator_info_request(did3)
+    res_nm3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did3, req33))
     assert json.loads(res_nm3['Node1'])['op'] == json.loads(res_nm3['Node4'])['op'] == 'REQNACK'
 
     req_t = await ledger.build_get_validator_info_request(trustee_did)
@@ -288,20 +300,52 @@ async def test_misc_temp():
     pool_config1 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
     assert pool_config1['op'] == 'REQNACK'
 
-    # Trustee removes NETWORK_MONITOR role
-    res7 = await nym_helper(pool_handle, wallet_handle, trustee_did, did1, vk1, None, None)
-    # assert res7['op'] == 'REPLY'
-    # Steward removes NETWORK_MONITOR role
-    res8 = await nym_helper(pool_handle, wallet_handle, steward_did, did2, vk2, None, None)
-    # assert res8['op'] == 'REPLY'
-    # NM removes NETWORK_MONITOR role from itself
-    res9 = await nym_helper(pool_handle, wallet_handle, did1, did1, vk1, None, None)
-    assert res9['op'] == 'REPLY'
+    # Trustee removes NETWORK_MONITOR role added by him
+    res7 = await nym_helper(pool_handle, wallet_handle, trustee_did, did1, None, None, None)
+    assert res7['op'] == 'REPLY'
+    time.sleep(1)
+    req7 = await ledger.build_get_validator_info_request(did1)
+    res_27 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req7))
 
-    add_new_trustee = await nym_helper(pool_handle, wallet_handle, trustee_did, new_trustee_did, new_trustee_vk,
-                                       'new trustee', 'TRUSTEE')
-    add_new_steward = await nym_helper(pool_handle, wallet_handle, new_trustee_did, new_steward_did, new_steward_vk,
-                                       'new steward', 'STEWARD')
-    remove_new_steward_by_old_trustee = await nym_helper(pool_handle, wallet_handle, trustee_did,
-                                                         new_steward_did, new_steward_vk, None, None)
-    print(remove_new_steward_by_old_trustee)
+    # New Steward removes NETWORK_MONITOR role added by another Steward
+    res8 = await nym_helper(pool_handle, wallet_handle, new_steward_did, did2, None, None, None)
+    assert res8['op'] == 'REPLY'
+    time.sleep(1)
+    req8 = await ledger.build_get_validator_info_request(did2)
+    res_18 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did2, req8))
+
+    print(res_27, res_18)
+    # # NM removes NETWORK_MONITOR role from itself
+    # res9 = await nym_helper(pool_handle, wallet_handle, did1, did1, None, None, None)
+    # assert res9['op'] == 'REPLY'
+    # req = await ledger.build_get_validator_info_request(did1)
+    # res10 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
+    # assert res10
+
+
+@pytest.mark.asyncio
+async def test_misc_roles():
+    await pool.set_protocol_version(2)
+    pool_handle, _ = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
+        {'seed': '000000000000000000000000Trustee1'}))
+    new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    anchor1_did, anchor1_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+    anchor2_did, anchor2_vk = await did.create_and_store_my_did(wallet_handle, '{}')
+
+    # Trustee adds new Steward
+    res1 = await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, new_steward_vk, None, 'STEWARD')
+    assert res1['op'] == 'REPLY'
+
+    # New Steward adds TA1
+    res2 = await nym_helper(pool_handle, wallet_handle, new_steward_did, anchor1_did, anchor1_vk, None, 'TRUST_ANCHOR')
+    assert res2['op'] == 'REPLY'
+
+    # Trustee removes new Steward
+    res3 = await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, None, None, None)
+    assert res3['op'] == 'REPLY'
+
+    # New Steward adds TA2
+    res4 = await nym_helper(pool_handle, wallet_handle, new_steward_did, anchor2_did, anchor2_vk, None, 'TRUST_ANCHOR')
+    assert res4['op'] == 'REJECT'

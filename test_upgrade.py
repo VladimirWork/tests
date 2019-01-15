@@ -41,7 +41,7 @@ async def test_pool_upgrade_positive():
                         'CbW92yCBgTMKquvsSRzDn5aA5uHzWZfP85bcW6RUK4hk', 'H5cW9eWhcBSEHfaAVkqP5QNa11m6kZ9zDyRXQZDBoSpq',
                         'DE8JMTgA7DaieF9iGKAyy5yvsZovroHr3SMEoDnbgFcp']
     init_time = 1
-    version = '1.6.80'
+    version = '1.6.755'
     status = 'Active: active (running)'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
     action = 'start'
@@ -60,7 +60,7 @@ async def test_pool_upgrade_positive():
     reinstall = False
     force = False
     package = 'indy-node'
-    pool_handle, _ = await pool_helper(path_to_genesis='./aws_genesis')
+    pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     random_did = random_did_and_json()[0]
     another_random_did = random_did_and_json()[0]
@@ -94,11 +94,11 @@ async def test_pool_upgrade_positive():
 
     # schedule pool upgrade
     req = await ledger.build_pool_upgrade_request(trustee_did, name, version, action, _sha256, _timeout,
-                                                  aws_25_schedule, None, reinstall, force, package)
+                                                  docker_4_schedule, None, reinstall, force, package)
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(7600)
+    time.sleep(1200)
 
     docker_4_hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     aws_25_hosts = [testinfra.get_host('ssh://persistent_node'+str(i),
@@ -106,9 +106,9 @@ async def test_pool_upgrade_positive():
                     for i in range(1, 26)]
     # print(aws_25_hosts)
     # os.chdir('/home/indy/indy-node/pool_automation/auto/.ssh/')
-    version_outputs = [host.run('dpkg -l | grep {}'.format(package)) for host in aws_25_hosts]
+    version_outputs = [host.run('dpkg -l | grep {}'.format(package)) for host in docker_4_hosts]
     print(version_outputs)
-    status_outputs = [host.run('systemctl status indy-node') for host in aws_25_hosts]
+    status_outputs = [host.run('systemctl status indy-node') for host in docker_4_hosts]
     print(status_outputs)
     # os.chdir('/home/indy/PycharmProjects/tests')
     version_checks = [output.stdout.find(version) for output in version_outputs]

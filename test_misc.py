@@ -358,3 +358,8 @@ async def test_misc_roles():
     # New Steward adds TA2
     res4 = await nym_helper(pool_handle, wallet_handle, new_steward_did, anchor2_did, anchor2_vk, None, 'TRUST_ANCHOR')
     assert res4['op'] == 'REJECT'
+
+
+@pytest.mark.asyncio
+async def test_misc_freshness():
+    await pool.set_protocol_version(2)

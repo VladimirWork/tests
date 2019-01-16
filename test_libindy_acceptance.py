@@ -7,9 +7,9 @@ def test_libindy():
     indy_plenum_ver = '1.6.57'
     indy_anoncreds_ver = '1.0.11'
     indy_node_ver = '1.6.82'
-    indy_sdk_deb_path = 'https://repo.sovrin.org/sdk/lib/apt/xenial/stable/'
-    indy_sdk_deb_ver = 'libindy_1.7.0_amd64.deb'
-    indy_sdk_ver = '1.7.0'
+    indy_sdk_deb_path = 'https://repo.sovrin.org/sdk/lib/apt/xenial/rc/'
+    indy_sdk_deb_ver = 'libindy_1.7.0~46_amd64.deb'
+    indy_sdk_ver = '1.7.0-rc-46'
     os.chdir('/home/indy/indy-sdk')
     subprocess.check_call(['git', 'stash'])
     subprocess.check_call(['git', 'fetch'])
@@ -42,13 +42,22 @@ def test_libindy():
     # test java
     java_res = host.\
         run('cd /home/indy/samples/java && TEST_POOL_IP=127.0.0.1 mvn clean compile exec:java -Dexec.mainClass="Main"')
-    host.run('rm -rf /home/indy/.indy_client')
-    assert java_res.stdout.find('BUILD SUCCESS') is not -1
     print(java_res)
+    java_checks = ['Anoncreds sample -> completed', 'Anoncreds Revocation sample -> completed',
+                   'Ledger sample -> completed', 'Crypto sample -> completed', 'BUILD SUCCESS']
+    for check in java_checks:
+        assert java_res.stdout.find(check) is not -1
+    host.run('rm -rf /home/indy/.indy_client')
 
     # test python
     host.run('cd /home/indy/samples/python && python3.5 -m pip install --user -e .')
     python_res = host.run('cd /home/indy/samples/python && TEST_POOL_IP=127.0.0.1 python3.5 src/main.py')
-    host.run('rm -rf /home/indy/.indy_client')
-    assert python_res
     print(python_res)
+    python_checks = ['Getting started -> done', 'Anoncreds Revocation sample -> completed',
+                     'Anoncreds sample -> completed', 'Crypto sample -> completed', 'Ledger sample -> completed']
+    for check in python_checks:
+        assert python_res.stderr.find(check) is not -1
+    host.run('rm -rf /home/indy/.indy_client')
+
+    # test node.js
+    # TO DO

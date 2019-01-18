@@ -35,8 +35,7 @@ async def test_misc_freshness():
     req = await ledger.multi_sign_request(wallet_handle, trustee_did4, req)
     new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     some_did = random_did_and_json()[0]
-    res = await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, new_steward_vk,
-                           'steward', 'STEWARD')
+    await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, new_steward_vk, 'steward', 'STEWARD')
 
     # # write config ledger txn
     # dests = ['Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv', '8ECVSk179mjsjKRLWiQtssMLgp6EPhWXtaYyStWPSGAb',
@@ -51,9 +50,29 @@ async def test_misc_freshness():
     # config_ledger = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     # assert config_ledger['op'] == 'REPLY'
 
-    # write domain ledger txn
-    domain_ledger = await nym_helper(pool_handle, wallet_handle, trustee_did, some_did, None, 'some alias', None)
-    assert domain_ledger['op'] == 'REPLY'
+    # write domain ledger txns
+    timestamp0 = int(time.time())
+    nym = await nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
+    attrib = await attrib_helper(pool_handle, wallet_handle, trustee_did, some_did, None, json.dumps({'key': 'value'}),
+                                 None)
+    schema_id, schema = await schema_helper(pool_handle, wallet_handle, trustee_did, random_string(10), '1.0',
+                                            json.dumps(["age", "sex", "height", "name"]))
+    temp = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    schema_id, schema_json = await ledger.parse_get_schema_response(json.dumps(temp))
+    cred_def_id, _, cred_def =\
+        await cred_def_helper(pool_handle, wallet_handle, trustee_did, schema_json, random_string(5), 'CL',
+                              json.dumps({'support_revocation': True}))
+    revoc_reg_def_id1, _, _, revoc_reg_def =\
+        await revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, 'CL_ACCUM', random_string(5), cred_def_id,
+                                   json.dumps({'max_cred_num': 1, 'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
+    revoc_reg_def_id2, _, _, revoc_reg_entry =\
+        await revoc_reg_entry_helper(pool_handle, wallet_handle, trustee_did, 'CL_ACCUM', random_string(5), cred_def_id,
+                                     json.dumps({'max_cred_num': 1, 'issuance_type': 'ISSUANCE_BY_DEFAULT'}))
+    timestamp1 = int(time.time())
+
+    add_results = [nym, attrib, schema, cred_def, revoc_reg_def, revoc_reg_entry]
+    for res in add_results:
+        assert res['op'] == 'REPLY'
 
     # # write pool ledger txn
     # data = json.dumps(
@@ -83,23 +102,20 @@ async def test_misc_freshness():
     # print(int(time.time()))
     # assert (int(time.time()) - config_result['result']['state_proof']['multi_signature']['value']['timestamp']) <= 300
 
-    # # read domain ledger txn using get_txn - KeyError: 'state_proof'
-    # req = await ledger.build_get_txn_request(None, 'DOMAIN', domain_ledger['result']['txnMetadata']['seqNo'])
-    # domain_result_get_txn = json.loads(await ledger.submit_request(pool_handle, req))
-    # print(domain_result_get_txn['result']['state_proof']['multi_signature']['value']['timestamp'])
-    # print(int(time.time()))
-    # assert\
-    #     (int(time.time()) - domain_result_get_txn['result']['state_proof']['multi_signature']['value']['timestamp'])\
-    #     <= 300
+    # read domain ledger txns
+    get_nym = await get_nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
+    get_attrib = await get_attrib_helper(pool_handle, wallet_handle, trustee_did, some_did, None, 'key', None)
+    get_schema = await get_schema_helper(pool_handle, wallet_handle, trustee_did, schema_id)
+    get_cred_def = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did, cred_def_id)
+    get_revoc_reg_def = await get_revoc_reg_def_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id1)
+    get_revoc_reg = await get_revoc_reg_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id2, timestamp1)
+    get_revoc_reg_delta = await get_revoc_reg_delta_helper(pool_handle, wallet_handle, trustee_did, revoc_reg_def_id2,
+                                                           timestamp0, timestamp1)
 
-    # read domain ledger txn using get_nym
-    req = await ledger.build_get_nym_request(None, some_did)
-    domain_result_get_nym = json.loads(await ledger.submit_request(pool_handle, req))
-    print(domain_result_get_nym['result']['state_proof']['multi_signature']['value']['timestamp'])
-    print(int(time.time()))
-    assert\
-        (int(time.time()) - domain_result_get_nym['result']['state_proof']['multi_signature']['value']['timestamp'])\
-        <= 300
+    get_results = [get_nym, get_attrib, get_schema, get_cred_def, get_revoc_reg_def, get_revoc_reg, get_revoc_reg_delta]
+    for res in get_results:
+        assert res['result']['seqNo'] is not None
+        assert (int(time.time()) - res['result']['state_proof']['multi_signature']['value']['timestamp']) <= 300
 
     # # read pool ledger txn - KeyError: 'state_proof'
     # req = await ledger.build_get_txn_request(None, 'POOL', pool_ledger['result']['txnMetadata']['seqNo'])
@@ -112,8 +128,6 @@ async def test_misc_freshness():
     # read token ledger txn
     req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did, address)
     token_result = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
-    print(token_result)
-    print(token_result['result']['state_proof']['multi_signature']['value']['timestamp'])
     print(int(time.time()))
     assert\
         (int(time.time()) - token_result['result']['state_proof']['multi_signature']['value']['timestamp'])\

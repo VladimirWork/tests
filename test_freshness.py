@@ -11,8 +11,10 @@ async def test_misc_freshness():
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     method = 'sov'
-    address = await payment.create_payment_address(wallet_handle, method, json.dumps(
+    address1 = await payment.create_payment_address(wallet_handle, method, json.dumps(
         {"seed": str('00000000000000000000000000000000')}))
+    address2 = await payment.create_payment_address(wallet_handle, method, json.dumps(
+        {"seed": str('11111111111111111111111111111111')}))
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
     trustee_did2, trustee_vk2 = await did.create_and_store_my_did(wallet_handle, json.dumps(
@@ -26,13 +28,21 @@ async def test_misc_freshness():
     await nym_helper(pool_handle, wallet_handle, trustee_did, trustee_did3, trustee_vk3, None, 'TRUSTEE')
     await nym_helper(pool_handle, wallet_handle, trustee_did, trustee_did4, trustee_vk4, None, 'TRUSTEE')
 
-    req, _ = await payment.build_mint_req(wallet_handle, trustee_did,
-                                          json.dumps([{"recipient": address, "amount": 100}]), None)
+    mint_req, _ = await payment.build_mint_req(wallet_handle, trustee_did,
+                                               json.dumps([{"recipient": address1, "amount": 100}]), None)
+    mint_req = await ledger.multi_sign_request(wallet_handle, trustee_did, mint_req)
+    mint_req = await ledger.multi_sign_request(wallet_handle, trustee_did2, mint_req)
+    mint_req = await ledger.multi_sign_request(wallet_handle, trustee_did3, mint_req)
+    mint_req = await ledger.multi_sign_request(wallet_handle, trustee_did4, mint_req)
 
-    req = await ledger.multi_sign_request(wallet_handle, trustee_did, req)
-    req = await ledger.multi_sign_request(wallet_handle, trustee_did2, req)
-    req = await ledger.multi_sign_request(wallet_handle, trustee_did3, req)
-    req = await ledger.multi_sign_request(wallet_handle, trustee_did4, req)
+    fees_req = await payment.build_set_txn_fees_req(wallet_handle, trustee_did, method, json.dumps(
+        {'1': 0, '100': 0, '101': 0, '102': 0, '113': 0, '114': 0, '10001': 0}))
+
+    fees_req = await ledger.multi_sign_request(wallet_handle, trustee_did, fees_req)
+    fees_req = await ledger.multi_sign_request(wallet_handle, trustee_did2, fees_req)
+    fees_req = await ledger.multi_sign_request(wallet_handle, trustee_did3, fees_req)
+    fees_req = await ledger.multi_sign_request(wallet_handle, trustee_did4, fees_req)
+
     new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handle, '{}')
     some_did = random_did_and_json()[0]
     await nym_helper(pool_handle, wallet_handle, trustee_did, new_steward_did, new_steward_vk, 'steward', 'STEWARD')
@@ -89,8 +99,20 @@ async def test_misc_freshness():
     # assert pool_ledger['op'] == 'REPLY'
 
     # write token ledger txn
-    token_ledger = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
-    assert token_ledger['op'] == 'REPLY'
+    mint = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, mint_req))
+    assert mint['op'] == 'REPLY'
+
+    req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did, address1)
+    res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req)
+    source1 = json.loads(await payment.parse_get_payment_sources_response(method, res))[0]['source']
+    req, _ = await payment.build_payment_req(wallet_handle, trustee_did, json.dumps([source1]), json.dumps(
+        [{'recipient': address2, 'amount': 100}]), None)
+    pay = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    assert pay['op'] == 'REPLY'
+    full_receipt = json.loads(await payment.parse_payment_response(method, json.dumps(pay)))
+
+    fees = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, fees_req))
+    assert fees['op'] == 'REPLY'
 
     time.sleep(330)
 
@@ -126,9 +148,14 @@ async def test_misc_freshness():
     # assert (int(time.time()) - pool_result['result']['state_proof']['multi_signature']['value']['timestamp']) <= 300
 
     # read token ledger txn
-    req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did, address)
-    token_result = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
-    print(int(time.time()))
-    assert\
-        (int(time.time()) - token_result['result']['state_proof']['multi_signature']['value']['timestamp'])\
-        <= 300
+    req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did, address1)
+    get_mint = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    assert(int(time.time()) - get_mint['result']['state_proof']['multi_signature']['value']['timestamp']) <= 300
+
+    req, _ = await payment.build_verify_payment_req(wallet_handle, trustee_did, full_receipt[0]['receipt'])
+    verify = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req)
+    assert verify  # no state_proof
+
+    req = await payment.build_get_txn_fees_req(wallet_handle, trustee_did, method)
+    get_fees = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    assert(int(time.time()) - get_fees['result']['state_proof']['multi_signature']['value']['timestamp']) <= 300

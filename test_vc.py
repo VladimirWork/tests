@@ -6,7 +6,7 @@ from indy import did, ledger
 
 
 @pytest.mark.asyncio
-async def test_vc_by_restart(looper, simple):
+async def test_vc_by_restart(simple):
     pool_handle, wallet_handle = simple
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))
@@ -51,7 +51,7 @@ async def test_vc_by_restart(looper, simple):
 
 
 @pytest.mark.asyncio
-async def test_vc_by_demotion(looper, simple):
+async def test_vc_by_demotion(simple):
     pool_handle, wallet_handle = simple
     trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
         {'seed': '000000000000000000000000Trustee1'}))

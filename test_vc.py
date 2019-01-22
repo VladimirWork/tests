@@ -15,7 +15,7 @@ async def test_vc_by_restart(simple):
 
     add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
     assert add_before['op'] == 'REPLY'
-    time.sleep(2)
+    time.sleep(3)
     get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
     assert get_before['result']['seqNo'] is not None
 
@@ -31,7 +31,7 @@ async def test_vc_by_restart(simple):
 
     add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
     assert add_after['op'] == 'REPLY'
-    time.sleep(2)
+    time.sleep(3)
     get_after = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
     assert get_after['result']['seqNo'] is not None
 
@@ -59,7 +59,7 @@ async def test_vc_by_demotion(simple):
     another_random_did = random_did_and_json()[0]
 
     add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
-    time.sleep(1)
+    time.sleep(3)
     get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
 
     print(add_before, '\n', get_before)
@@ -80,7 +80,7 @@ async def test_vc_by_demotion(simple):
     time.sleep(120)
 
     add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
-    time.sleep(2)
+    time.sleep(3)
     get_after = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
 
     print(add_after, '\n', get_after)

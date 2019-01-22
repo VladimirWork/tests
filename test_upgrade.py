@@ -41,7 +41,7 @@ async def test_pool_upgrade_positive():
                         'CbW92yCBgTMKquvsSRzDn5aA5uHzWZfP85bcW6RUK4hk', 'H5cW9eWhcBSEHfaAVkqP5QNa11m6kZ9zDyRXQZDBoSpq',
                         'DE8JMTgA7DaieF9iGKAyy5yvsZovroHr3SMEoDnbgFcp']
     init_time = 1
-    version = '1.6.757'
+    version = '1.6.765'
     status = 'Active: active (running)'
     name = 'upgrade'+'_'+version+'_'+datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
     action = 'start'
@@ -98,7 +98,7 @@ async def test_pool_upgrade_positive():
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
     print(res)
 
-    time.sleep(1200)
+    # time.sleep(1200)
 
     docker_4_hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     aws_25_hosts = [testinfra.get_host('ssh://persistent_node'+str(i),

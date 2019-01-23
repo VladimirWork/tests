@@ -1,7 +1,8 @@
 import pytest
 import time
 import logging
-from indy import did, payment, IndyError
+from indy import *
+from indy.error import IndyError
 from utils import *
 import testinfra
 import numpy as np
@@ -24,8 +25,10 @@ async def test_misc_get_nonexistent():
         {'seed': '000000000000000000000000Trustee1'}))
     timestamp1 = int(time.time())
 
-    res1 = await get_schema_helper(pool_handle, wallet_handle, submitter_did, 'WKWN6U6XKTFxJBC3mB7Pdo:2:schema1:1.0')
-    res2 = await get_cred_def_helper(pool_handle, wallet_handle, submitter_did, '3VTSJXBKw2DBjfaJt4eS1X:3:CL:685:TAG')
+    res1 = json.dumps(
+        await get_schema_helper(pool_handle, wallet_handle, submitter_did, 'WKWN6U6XKTFxJBC3mB7Pdo:2:schema1:1.0'))
+    res2 = json.dumps(
+        await get_cred_def_helper(pool_handle, wallet_handle, submitter_did, '3VTSJXBKw2DBjfaJt4eS1X:3:CL:685:TAG'))
     res3 = json.dumps(
         await get_revoc_reg_def_helper(
             pool_handle, wallet_handle, submitter_did,
@@ -368,3 +371,33 @@ async def test_misc_pool_config():
 
     res3 = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did_and_json()[0])
     assert res3['op'] == 'REPLY'
+
+
+@pytest.mark.asyncio
+async def test_misc_error_handling(simple):
+    pool_handle, wallet_handle = simple
+    print()
+    with pytest.raises(IndyError) as e1:
+        await anoncreds.issuer_create_schema('', '', '', json.dumps(['']))
+    print(e1)
+    with pytest.raises(IndyError) as e2:
+        await crypto.get_key_metadata(wallet_handle, '')
+    print(e2)
+    with pytest.raises(IndyError) as e3:
+        await did.create_and_store_my_did(wallet_handle, '')
+    print(e3)
+    with pytest.raises(IndyError) as e4:
+        await ledger.sign_and_submit_request(pool_handle, wallet_handle, '', '')
+    print(e4)
+    with pytest.raises(IndyError) as e5:
+        await ledger.sign_and_submit_request(pool_handle, wallet_handle, '', '')
+    print(e5)
+    with pytest.raises(IndyError) as e6:
+        await pairwise.create_pairwise(wallet_handle, '', '', None)
+    print(e6)
+    with pytest.raises(IndyError) as e7:
+        await pool.create_pool_ledger_config('', None)
+    print(e7)
+    with pytest.raises(IndyError) as e8:
+        await wallet.create_wallet('', '')
+    print(e8)

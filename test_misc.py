@@ -376,28 +376,30 @@ async def test_misc_pool_config():
 @pytest.mark.asyncio
 async def test_misc_error_handling(simple):
     pool_handle, wallet_handle = simple
+    d, vk = await did.create_and_store_my_did(wallet_handle, '{}')
     print()
     with pytest.raises(IndyError) as e1:
-        await anoncreds.issuer_create_schema('', '', '', json.dumps(['']))
+        await anoncreds.issuer_create_schema(d, random_string(5), random_string(5), json.dumps([{}]))
     print(e1)
     with pytest.raises(IndyError) as e2:
-        await crypto.get_key_metadata(wallet_handle, '')
+        await crypto.get_key_metadata(wallet_handle, random_string(10))
     print(e2)
     with pytest.raises(IndyError) as e3:
-        await did.create_and_store_my_did(wallet_handle, '')
+        await did.create_and_store_my_did(wallet_handle, json.dumps({'did': ''}))
     print(e3)
     with pytest.raises(IndyError) as e4:
-        await ledger.sign_and_submit_request(pool_handle, wallet_handle, '', '')
+        await ledger.sign_and_submit_request(pool_handle, wallet_handle, '3fyKjNLV6foqDxoEbBiQhY', json.dumps({}))
     print(e4)
     with pytest.raises(IndyError) as e5:
-        await ledger.sign_and_submit_request(pool_handle, wallet_handle, '', '')
+        await non_secrets.add_wallet_record(0, random_string(1), random_string(2), random_string(3),
+                                            json.dumps({}))
     print(e5)
     with pytest.raises(IndyError) as e6:
         await pairwise.create_pairwise(wallet_handle, '', '', None)
     print(e6)
     with pytest.raises(IndyError) as e7:
-        await pool.create_pool_ledger_config('', None)
+        await pool.create_pool_ledger_config('docker', None)  # already exists
     print(e7)
     with pytest.raises(IndyError) as e8:
-        await wallet.create_wallet('', '')
+        await wallet.create_wallet(json.dumps({}), json.dumps({}))
     print(e8)

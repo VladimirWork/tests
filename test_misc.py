@@ -236,16 +236,6 @@ async def test_new_role():
 
 
 @pytest.mark.asyncio
-async def test_misc_temp(pool_handler, wallet_handler, default_trustee, random_dids):
-    trustee_did, trustee_vk = default_trustee
-    # DEBUG!
-    dids = random_dids(3)
-    res1 = await nym_helper(pool_handler, wallet_handler, trustee_did, dids[0][0], None, None, 'TRUSTEE')
-    res2 = await nym_helper(pool_handler, wallet_handler, dids[0][0], dids[1][0], None, None, 'STEWARD')
-    assert res1, res2
-
-
-@pytest.mark.asyncio
 async def test_misc_pool_config():
     await pool.set_protocol_version(2)
     pool_handle, _ = await pool_helper()
@@ -319,3 +309,11 @@ async def test_misc_vi_freshness(pool_handler, wallet_handler, default_trustee):
     res = json.loads(sample(res.items(), 1)[0][1])
     assert res['result']['data']['Node_info']['Freshness_status']['0']['Has_write_consensus'] is True
     assert res['result']['data']['Node_info']['Freshness_status']['0']['Last_updated_time']
+
+
+@pytest.mark.asyncio
+async def test_misc_temp(pool_handler, wallet_handler, default_trustee):
+    trustee_did, trustee_vk = default_trustee
+    did1, vk1 = await did.create_and_store_my_did(wallet_handler, '{}')
+    res = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, vk1, 'alias', None)
+    assert res

@@ -374,28 +374,27 @@ async def test_misc_pool_config():
 
 
 @pytest.mark.asyncio
-async def test_misc_error_handling(simple):
-    pool_handle, wallet_handle = simple
-    d, vk = await did.create_and_store_my_did(wallet_handle, '{}')
+async def test_misc_error_handling(pool_handler, wallet_handler):
+    d, vk = await did.create_and_store_my_did(wallet_handler, '{}')
     print()
     with pytest.raises(IndyError) as e1:
         await anoncreds.issuer_create_schema(d, random_string(5), random_string(5), json.dumps([{}]))
     print(e1)
     with pytest.raises(IndyError) as e2:
-        await crypto.get_key_metadata(wallet_handle, random_string(10))
+        await crypto.get_key_metadata(wallet_handler, random_string(10))
     print(e2)
     with pytest.raises(IndyError) as e3:
-        await did.create_and_store_my_did(wallet_handle, json.dumps({'did': ''}))
+        await did.create_and_store_my_did(wallet_handler, json.dumps({'did': ''}))
     print(e3)
     with pytest.raises(IndyError) as e4:
-        await ledger.sign_and_submit_request(pool_handle, wallet_handle, '3fyKjNLV6foqDxoEbBiQhY', json.dumps({}))
+        await ledger.sign_and_submit_request(pool_handler, wallet_handler, '3fyKjNLV6foqDxoEbBiQhY', json.dumps({}))
     print(e4)
     with pytest.raises(IndyError) as e5:
         await non_secrets.add_wallet_record(0, random_string(1), random_string(2), random_string(3),
                                             json.dumps({}))
     print(e5)
     with pytest.raises(IndyError) as e6:
-        await pairwise.create_pairwise(wallet_handle, '', '', None)
+        await pairwise.create_pairwise(wallet_handler, '', '', None)
     print(e6)
     with pytest.raises(IndyError) as e7:
         await pool.create_pool_ledger_config('docker', None)  # already exists
@@ -403,3 +402,8 @@ async def test_misc_error_handling(simple):
     with pytest.raises(IndyError) as e8:
         await wallet.create_wallet(json.dumps({}), json.dumps({}))
     print(e8)
+
+
+@pytest.mark.asyncio
+async def test_misc_vi_freshness(pool_handler, wallet_handler, default_trustee):
+    pass

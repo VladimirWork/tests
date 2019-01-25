@@ -2,7 +2,7 @@ import json
 import string
 import random
 import base58
-from indy import pool, wallet, ledger, anoncreds, blob_storage
+from indy import pool, wallet, did, ledger, anoncreds, blob_storage
 from ctypes import CDLL
 
 

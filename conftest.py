@@ -28,3 +28,19 @@ def default_trustee(looper, wallet_handler):
     trustee_did, trustee_vk = looper.run_until_complete(
         did.create_and_store_my_did(wallet_handler, json.dumps({'seed': '000000000000000000000000Trustee1'})))
     yield trustee_did, trustee_vk
+
+
+@pytest.fixture(scope='function')
+def random_did(looper, wallet_handler):
+    new_did, new_vk = looper.run_until_complete(did.create_and_store_my_did(wallet_handler, '{}'))
+    yield new_did, new_vk
+
+
+@pytest.fixture(scope='function')
+def random_dids(random_did):
+    def wrap(n):
+        result = []
+        for i in range(n):
+            result.append(random_did)
+        return result
+    yield wrap

@@ -315,5 +315,9 @@ async def test_misc_vi_freshness(pool_handler, wallet_handler, default_trustee):
 async def test_misc_temp(pool_handler, wallet_handler, default_trustee):
     trustee_did, trustee_vk = default_trustee
     did1, vk1 = await did.create_and_store_my_did(wallet_handler, '{}')
-    res = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, vk1, 'alias', None)
-    assert res
+    res1 = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, vk1, None, 'STEWARD')
+    assert res1
+    res2 = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, None, None, '')
+    assert res2
+    res3 = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, vk1, None, 'STEWARD')
+    assert res3

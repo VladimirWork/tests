@@ -4,11 +4,11 @@ import random
 import base58
 from indy import pool, wallet, did, ledger, anoncreds, blob_storage
 from ctypes import CDLL
+import functools
+import asyncio
 
 
 def run_async_method(method, *args, **kwargs):
-
-    import asyncio
     loop = asyncio.get_event_loop()
     loop.run_until_complete(method(*args, **kwargs))
 
@@ -176,3 +176,13 @@ async def get_revoc_reg_delta_helper(pool_handle, wallet_handle, submitter_did, 
     res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, submitter_did, req))
 
     return res
+
+
+def run_in_event_loop(async_func):
+    @functools.wraps(async_func)
+    def wrapped(operations, queue_size, add_size, get_size, event_loop):
+        event_loop.run_until_complete(asyncio.ensure_future(
+            async_func(operations, queue_size, add_size, get_size, event_loop),
+            loop=event_loop,
+        ))
+    return wrapped

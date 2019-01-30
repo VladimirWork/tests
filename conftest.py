@@ -1,4 +1,5 @@
 import pytest
+import testinfra
 from utils import *
 from indy import *
 from async_generator import yield_, async_generator
@@ -37,7 +38,7 @@ async def send_and_get_nyms_before_and_after(get_default_trustee, pool_handler, 
 
     add_before = await nym_helper(pool_handler, wallet_handler, trustee_did, random_did)
     assert add_before['op'] == 'REPLY'
-    time.sleep(1)
+    time.sleep(3)
     get_before = await get_nym_helper(pool_handler, wallet_handler, trustee_did, random_did)
     assert get_before['result']['seqNo'] is not None
     print('\nSEND AND GET NYM SETUP IS DONE!')
@@ -46,7 +47,37 @@ async def send_and_get_nyms_before_and_after(get_default_trustee, pool_handler, 
 
     add_after = await nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
     assert add_after['op'] == 'REPLY'
-    time.sleep(1)
+    time.sleep(3)
     get_after = await get_nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
     assert get_after['result']['seqNo'] is not None
     print('\nSEND AND GET NYM TEARDOWN IS DONE!')
+
+
+@pytest.fixture()
+@async_generator
+async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handler):
+    trustee_did, _ = get_default_trustee
+
+    req = await ledger.build_get_validator_info_request(trustee_did)
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
+    result = json.loads(sample(results.items(), 1)[0][1])
+    name_before = result['result']['data']['Node_info']['Name']
+    primary_before =\
+        result['result']['data']['Node_info']['Replicas_status'][name_before+':0']['Primary'][len('Node'):-len(':0')]
+    host = testinfra.get_host('docker://node'+primary_before)
+    host.run('systemctl stop indy-node')
+    print('\nPRIMARY NODE ({}) HAS BEEN STOPPED!'.format(name_before))
+
+    await yield_()
+
+    req = await ledger.build_get_validator_info_request(trustee_did)
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
+    result = json.loads(sample(results.items(), 1)[0][1])
+    name_after = result['result']['data']['Node_info']['Name']
+    primary_after =\
+        result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
+    host.run('systemctl start indy-node')
+    print('\nEX-PRIMARY NODE HAS BEEN STARTED!')
+    print('\nNEW PRIMARY IS {}'.format(name_after))
+
+    assert primary_before != primary_after

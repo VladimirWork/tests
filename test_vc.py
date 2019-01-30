@@ -3,33 +3,13 @@ import pytest
 import time
 from utils import *
 from indy import ledger
+from random import sample
 
 
 @pytest.mark.asyncio
-async def test_vc_by_restart(pool_handler, wallet_handler, get_default_trustee):
-    trustee_did, _ = get_default_trustee
-
-    req = await ledger.build_get_validator_info_request(trustee_did)
-    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
-    result = json.loads(results['Node4'])
-    primary_before =\
-        result['result']['data']['Node_info']['Replicas_status']['Node4:0']['Primary'][len('Node'):-len(':0')]
-    host = testinfra.get_host('docker://node'+primary_before)
-    host.run('systemctl stop indy-node')
-
+async def test_vc_by_restart(pool_handler, wallet_handler, get_default_trustee, send_and_get_nyms_before_and_after,
+                             stop_and_start_primary):
     time.sleep(120)
-
-    req = await ledger.build_get_validator_info_request(trustee_did)
-    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
-    result = json.loads(results['Node4'])
-    primary_after =\
-        result['result']['data']['Node_info']['Replicas_status']['Node4:0']['Primary'][len('Node'):-len(':0')]
-    host.run('systemctl start indy-node')
-
-    assert primary_before != primary_after
-
-    print(primary_before)
-    print(primary_after)
 
 
 @pytest.mark.asyncio

@@ -62,6 +62,12 @@ async def wallet_destructor(wallet_handle, wallet_config, wallet_credentials):
     await wallet.delete_wallet(wallet_config, wallet_credentials)
 
 
+async def default_trustee(wallet_handle):
+    trustee_did, trustee_vk = await did.create_and_store_my_did(
+        wallet_handle, json.dumps({'seed': '000000000000000000000000Trustee1'}))
+    return trustee_did, trustee_vk
+
+
 async def payment_initializer(library_name, initializer_name):
     library = CDLL(library_name)
     init = getattr(library, initializer_name)

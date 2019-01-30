@@ -2,14 +2,15 @@ import testinfra
 import pytest
 import time
 from utils import *
-from indy import did, ledger
+from indy import ledger
 
 
 @pytest.mark.asyncio
-async def test_vc_by_restart(simple):
-    pool_handle, wallet_handle = simple
-    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
-        {'seed': '000000000000000000000000Trustee1'}))
+async def test_vc_by_restart():
+    await pool.set_protocol_version(2)
+    pool_handle, _ = await pool_helper()
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await default_trustee(wallet_handle)
     random_did = random_did_and_json()[0]
     another_random_did = random_did_and_json()[0]
 
@@ -51,21 +52,20 @@ async def test_vc_by_restart(simple):
 
 
 @pytest.mark.asyncio
-async def test_vc_by_demotion(simple):
-    pool_handle, wallet_handle = simple
-    trustee_did, trustee_vk = await did.create_and_store_my_did(wallet_handle, json.dumps(
-        {'seed': '000000000000000000000000Trustee1'}))
+async def test_vc_by_demotion(pool_handler, wallet_handler):
+    wallet_handle, _, _ = await wallet_helper()
+    trustee_did, trustee_vk = await default_trustee(wallet_handle)
     random_did = random_did_and_json()[0]
     another_random_did = random_did_and_json()[0]
 
-    add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
+    add_before = await nym_helper(pool_handler, wallet_handler, trustee_did, random_did)
     time.sleep(3)
-    get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
+    get_before = await get_nym_helper(pool_handler, wallet_handler, trustee_did, random_did)
 
     print(add_before, '\n', get_before)
 
     req_vi = await ledger.build_get_validator_info_request(trustee_did)
-    results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req_vi))
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req_vi))
     result = json.loads(results['Node4'])
     primary_before =\
         result['result']['data']['Node_info']['Replicas_status']['Node4:0']['Primary'][len('Node'):-len(':0')]
@@ -74,23 +74,23 @@ async def test_vc_by_demotion(simple):
     alias = res['result']['data']['Node_info']['Name']
     demote_data = json.dumps({'alias': alias, 'services': []})
     demote_req = await ledger.build_node_request(trustee_did, target_did, demote_data)
-    demote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, demote_req))
+    demote_res = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, demote_req))
     assert demote_res['op'] == 'REPLY'
 
     time.sleep(120)
 
-    add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
+    add_after = await nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
     time.sleep(3)
-    get_after = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
+    get_after = await get_nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
 
     print(add_after, '\n', get_after)
 
     promote_data = json.dumps({'alias': alias, 'services': ['VALIDATOR']})
     promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
-    promote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
+    promote_res = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, promote_req))
     assert promote_res['op'] == 'REPLY'
 
-    results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req_vi))
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req_vi))
     result = json.loads(results['Node4'])
     primary_after =\
         result['result']['data']['Node_info']['Replicas_status']['Node4:0']['Primary'][len('Node'):-len(':0')]

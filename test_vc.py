@@ -6,22 +6,11 @@ from indy import ledger
 
 
 @pytest.mark.asyncio
-async def test_vc_by_restart():
-    await pool.set_protocol_version(2)
-    pool_handle, _ = await pool_helper()
-    wallet_handle, _, _ = await wallet_helper()
-    trustee_did, trustee_vk = await default_trustee(wallet_handle)
-    random_did = random_did_and_json()[0]
-    another_random_did = random_did_and_json()[0]
-
-    add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
-    assert add_before['op'] == 'REPLY'
-    time.sleep(3)
-    get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, random_did)
-    assert get_before['result']['seqNo'] is not None
+async def test_vc_by_restart(pool_handler, wallet_handler, get_default_trustee):
+    trustee_did, _ = get_default_trustee
 
     req = await ledger.build_get_validator_info_request(trustee_did)
-    results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
     result = json.loads(results['Node4'])
     primary_before =\
         result['result']['data']['Node_info']['Replicas_status']['Node4:0']['Primary'][len('Node'):-len(':0')]
@@ -30,16 +19,8 @@ async def test_vc_by_restart():
 
     time.sleep(120)
 
-    add_after = await nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
-    assert add_after['op'] == 'REPLY'
-    time.sleep(3)
-    get_after = await get_nym_helper(pool_handle, wallet_handle, trustee_did, another_random_did)
-    assert get_after['result']['seqNo'] is not None
-
-    print(add_after, '\n', get_after)
-
     req = await ledger.build_get_validator_info_request(trustee_did)
-    results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
     result = json.loads(results['Node4'])
     primary_after =\
         result['result']['data']['Node_info']['Replicas_status']['Node4:0']['Primary'][len('Node'):-len(':0')]
@@ -53,8 +34,7 @@ async def test_vc_by_restart():
 
 @pytest.mark.asyncio
 async def test_vc_by_demotion(pool_handler, wallet_handler):
-    wallet_handle, _, _ = await wallet_helper()
-    trustee_did, trustee_vk = await default_trustee(wallet_handle)
+    trustee_did, trustee_vk = await default_trustee(wallet_handler)
     random_did = random_did_and_json()[0]
     another_random_did = random_did_and_json()[0]
 

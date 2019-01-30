@@ -301,9 +301,9 @@ async def test_misc_error_handling(pool_handler, wallet_handler):
 
 
 @pytest.mark.asyncio
-async def test_misc_vi_freshness(pool_handler, wallet_handler, default_trustee):
+async def test_misc_vi_freshness(pool_handler, wallet_handler):
     # INDY-1928
-    trustee_did, trustee_vk = default_trustee
+    trustee_did, trustee_vk = await default_trustee(wallet_handler)
     req = await ledger.build_get_validator_info_request(trustee_did)
     res = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
     res = json.loads(sample(res.items(), 1)[0][1])
@@ -312,12 +312,10 @@ async def test_misc_vi_freshness(pool_handler, wallet_handler, default_trustee):
 
 
 @pytest.mark.asyncio
-async def test_misc_temp(pool_handler, wallet_handler, default_trustee):
-    trustee_did, trustee_vk = default_trustee
+async def test_misc_temp(pool_handler, wallet_handler, get_default_trustee, send_and_get_nyms_before_and_after):
+    trustee_did, _ = get_default_trustee
     did1, vk1 = await did.create_and_store_my_did(wallet_handler, '{}')
     res1 = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, vk1, None, 'STEWARD')
-    assert res1
+    assert res1['op'] == 'REPLY'
     res2 = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, None, None, '')
-    assert res2
-    res3 = await nym_helper(pool_handler, wallet_handler, trustee_did, did1, vk1, None, 'STEWARD')
-    assert res3
+    assert res2['op'] == 'REPLY'

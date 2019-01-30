@@ -29,7 +29,7 @@ def random_seed_and_json():
 
 async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis', node_list=None):
     if not pool_name:
-        pool_name = random_string(5)
+        pool_name = random_string(25)
     if node_list:
         pool_config = json.dumps({"genesis_txn": path_to_genesis, "preordered_nodes": node_list})
     else:
@@ -43,7 +43,7 @@ async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis', node_l
 
 async def wallet_helper(wallet_id=None, wallet_key='', wallet_key_derivation_method='ARGON2I_INT'):
     if not wallet_id:
-        wallet_id = random_string(5)
+        wallet_id = random_string(25)
     wallet_config = json.dumps({"id": wallet_id})
     wallet_credentials = json.dumps({"key": wallet_key, "key_derivation_method": wallet_key_derivation_method})
     await wallet.create_wallet(wallet_config, wallet_credentials)

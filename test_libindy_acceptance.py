@@ -8,13 +8,13 @@ def test_libindy():
     indy_anoncreds_ver = '1.0.11'
     indy_node_ver = '1.6.82'
     indy_sdk_deb_path = 'https://repo.sovrin.org/sdk/lib/apt/xenial/rc/'
-    indy_sdk_deb_ver = 'libindy_1.7.0~46_amd64.deb'
-    indy_sdk_ver = '1.7.0-rc-46'
+    indy_sdk_deb_ver = 'libindy_1.8.0~52_amd64.deb'
+    indy_sdk_ver = '1.8.0-rc-52'
     os.chdir('/home/indy/indy-sdk')
     subprocess.check_call(['git', 'stash'])
     subprocess.check_call(['git', 'fetch'])
     subprocess.check_call(['git', 'checkout', 'origin/rc'])
-    subprocess.check_call(['sed', '-i', '22c\\ARG indy_stream=rc', './ci/indy-pool.dockerfile'])
+    subprocess.check_call(['sed', '-i', '22c\\ARG indy_stream=stable', './ci/indy-pool.dockerfile'])
     subprocess.check_call(['sed', '-i', '27c\\ARG indy_plenum_ver={}'.format(indy_plenum_ver),
                            './ci/indy-pool.dockerfile'])
     subprocess.check_call(['sed', '-i', '28c\\ARG indy_anoncreds_ver={}'.format(indy_anoncreds_ver),

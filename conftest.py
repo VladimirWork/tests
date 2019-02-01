@@ -61,6 +61,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
 
     req = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
+    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:
@@ -81,6 +82,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
 
     req = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
+    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:
@@ -107,6 +109,7 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
 
     req_vi = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req_vi))
+    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:
@@ -137,6 +140,7 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
     print('\nEX-PRIMARY NODE HAS BEEN PROMOTED!')
 
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req_vi))
+    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:

@@ -3,7 +3,10 @@ import pytest
 import time
 from utils import *
 from indy import ledger
-from random import sample
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=0, format='%(asctime)s %(message)s')
 
 
 @pytest.mark.asyncio

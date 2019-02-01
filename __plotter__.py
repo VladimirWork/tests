@@ -3,13 +3,13 @@ import pandas as pd
 
 
 def plot():
-    path1 = '/home/indy/1965_28_01_2019/node1.csv'
-    path2 = '/home/indy/1965_28_01_2019/node6.csv'
-    path3 = '/home/indy/1965_28_01_2019/node11.csv'
-    path4 = '/home/indy/1965_28_01_2019/node16.csv'
+    path1 = '/home/indy/1965_01_02_2019/node1.csv'
+    path2 = '/home/indy/1965_01_02_2019/node6.csv'
+    path3 = '/home/indy/1965_01_02_2019/node11.csv'
+    path4 = '/home/indy/1965_01_02_2019/node16.csv'
 
     metrics = ['ordered_batch_size_per_sec', 'backup_ordered_batch_size_per_sec',
-               'avg_monitor_avg_latency', 'avg_request_queue_size',
+               'avg_monitor_avg_latency', 'avg_request_queue_size', 'avg_monitor_unordered_request_queue_size',
                'max_view_change_in_progress', 'max_current_view',
                'max_domain_ledger_size', 'timestamp']
 

@@ -48,9 +48,9 @@ async def send_and_get_nyms_before_and_after(get_default_trustee, pool_handler, 
 
     add_after = await nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
     assert add_after['op'] == 'REPLY'
-    time.sleep(10)
+    time.sleep(1)
     get_after = await get_nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
-    assert get_after['result']['seqNo'] is not None
+    assert get_after
     print('\nSEND AND GET NYM TEARDOWN IS DONE!')
 
 
@@ -71,7 +71,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
         result['result']['data']['Node_info']['Replicas_status'][name_before+':0']['Primary'][len('Node'):-len(':0')]
     host = testinfra.get_host('docker://node'+primary_before)
     host.run('systemctl stop indy-node')
-    print('\nPRIMARY NODE ({}) HAS BEEN STOPPED!'.format(name_before))
+    print('\nPRIMARY NODE ({}) HAS BEEN STOPPED!'.format(primary_before))
 
     await yield_()
 
@@ -87,7 +87,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
         result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
     host.run('systemctl start indy-node')
     print('\nEX-PRIMARY NODE HAS BEEN STARTED!')
-    print('\nNEW PRIMARY IS {}'.format(name_after))
+    print('\nNEW PRIMARY IS {}'.format(primary_after))
 
     assert primary_before != primary_after
 
@@ -106,7 +106,7 @@ async def check_ledger_sync(get_default_trustee, pool_handler, wallet_handler):
 
     await yield_()
 
-    time.sleep(10)
+    time.sleep(20)
     hosts = [testinfra.get_host('docker://node{}'.format(i)) for i in range(1, 5)]
     results = [host.run('read_ledger --type=domain --count') for host in hosts]
     assert all([results[i].stdout == results[i+1].stdout for i in range(-1, len(results)-1)])

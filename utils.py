@@ -28,7 +28,6 @@ def random_seed_and_json():
 
 
 async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis', node_list=None):
-    print(node_list)
     if not pool_name:
         pool_name = random_string(25)
     if node_list:

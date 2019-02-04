@@ -80,6 +80,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
 
     await yield_()
 
+    host.run('systemctl start indy-node')
     req = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
     print(results)
@@ -95,7 +96,6 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
     name_after = result['result']['data']['Node_info']['Name']
     primary_after =\
         result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
-    host.run('systemctl start indy-node')
     print('\nEX-PRIMARY NODE HAS BEEN STARTED!')
     print('\nNEW PRIMARY IS {}'.format(primary_after))
 

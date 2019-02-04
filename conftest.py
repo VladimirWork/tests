@@ -61,7 +61,6 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
 
     req = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
-    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:
@@ -83,7 +82,6 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
     host.run('systemctl start indy-node')
     req = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
-    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:
@@ -109,7 +107,6 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
 
     req_vi = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req_vi))
-    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:
@@ -136,11 +133,12 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
     promote_data = json.dumps({'alias': alias, 'services': ['VALIDATOR']})
     promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
     promote_res = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, promote_req))
+    host = testinfra.get_host('docker://node'+primary_before)
+    host.run('systemctl restart indy-node')
     assert promote_res['op'] == 'REPLY'
-    print('\nEX-PRIMARY NODE HAS BEEN PROMOTED!')
+    print('\nEX-PRIMARY NODE HAS BEEN PROMOTED AND RESTARTED!')
 
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req_vi))
-    print(results)
     try:
         result = json.loads(sample(results.items(), 1)[0][1])
     except JSONDecodeError:

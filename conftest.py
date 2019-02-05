@@ -48,7 +48,6 @@ async def send_and_get_nyms_before_and_after(get_default_trustee, pool_handler, 
     add_after = await nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
     assert add_after['op'] == 'REPLY'
     get_after = await get_nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
-    time.sleep(5)
     get_after_backup = await get_nym_helper(pool_handler, wallet_handler, trustee_did, another_random_did)
     assert (get_after['result']['seqNo'] | get_after_backup['result']['seqNo']) is not None
     print('\nSEND AND GET NYM TEARDOWN IS DONE!')
@@ -71,8 +70,21 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
             shuffle(list(results.keys()))
             result = json.loads(sample(results.items(), 1)[0][1])
     name_before = result['result']['data']['Node_info']['Name']
-    primary_before =\
-        result['result']['data']['Node_info']['Replicas_status'][name_before+':0']['Primary'][len('Node'):-len(':0')]
+    try:
+        primary_before =\
+            result['result']['data']['Node_info']['Replicas_status'][name_before+':0']['Primary'][len('Node'):
+                                                                                                  -len(':0')]
+    except TypeError:
+        try:
+            time.sleep(180)
+            primary_before = \
+                result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
+                                                                                                        -len(':0')]
+        except TypeError:
+            time.sleep(240)
+            primary_before = \
+                result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
+                                                                                                        -len(':0')]
     host = testinfra.get_host('docker://node'+primary_before)
     host.run('systemctl stop indy-node')
     print('\nPRIMARY NODE {} HAS BEEN STOPPED!'.format(primary_before))
@@ -92,8 +104,20 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
             shuffle(list(results.keys()))
             result = json.loads(sample(results.items(), 1)[0][1])
     name_after = result['result']['data']['Node_info']['Name']
-    primary_after =\
-        result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
+    try:
+        primary_after =\
+            result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
+    except TypeError:
+        try:
+            time.sleep(180)
+            primary_after = \
+                result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
+                                                                                                       -len(':0')]
+        except TypeError:
+            time.sleep(240)
+            primary_after = \
+                result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
+                                                                                                       -len(':0')]
     print('\nEX-PRIMARY NODE HAS BEEN STARTED!')
     print('\nNEW PRIMARY IS {}'.format(primary_after))
 
@@ -117,8 +141,21 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
             shuffle(list(results.keys()))
             result = json.loads(sample(results.items(), 1)[0][1])
     name_before = result['result']['data']['Node_info']['Name']
-    primary_before =\
-        result['result']['data']['Node_info']['Replicas_status'][name_before+':0']['Primary'][len('Node'):-len(':0')]
+    try:
+        primary_before =\
+            result['result']['data']['Node_info']['Replicas_status'][name_before+':0']['Primary'][len('Node'):
+                                                                                                  -len(':0')]
+    except TypeError:
+        try:
+            time.sleep(180)
+            primary_before = \
+                result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
+                                                                                                        -len(':0')]
+        except TypeError:
+            time.sleep(240)
+            primary_before = \
+                result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
+                                                                                                        -len(':0')]
     res = json.loads(results['Node'+primary_before])
     target_did = res['result']['data']['Node_info']['did']
     alias = res['result']['data']['Node_info']['Name']
@@ -149,8 +186,20 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
             shuffle(list(results.keys()))
             result = json.loads(sample(results.items(), 1)[0][1])
     name_after = result['result']['data']['Node_info']['Name']
-    primary_after =\
-        result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
+    try:
+        primary_after =\
+            result['result']['data']['Node_info']['Replicas_status'][name_after+':0']['Primary'][len('Node'):-len(':0')]
+    except TypeError:
+        try:
+            time.sleep(180)
+            primary_after = \
+                result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
+                                                                                                       -len(':0')]
+        except TypeError:
+            time.sleep(240)
+            primary_after = \
+                result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
+                                                                                                       -len(':0')]
     print('\nNEW PRIMARY IS {}'.format(primary_after))
 
     assert primary_before != primary_after

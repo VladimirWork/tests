@@ -81,7 +81,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
                 result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
                                                                                                         -len(':0')]
         except TypeError:
-            time.sleep(240)
+            time.sleep(300)
             primary_before = \
                 result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
                                                                                                         -len(':0')]
@@ -114,7 +114,7 @@ async def stop_and_start_primary(get_default_trustee, pool_handler, wallet_handl
                 result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
                                                                                                        -len(':0')]
         except TypeError:
-            time.sleep(240)
+            time.sleep(300)
             primary_after = \
                 result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
                                                                                                        -len(':0')]
@@ -152,7 +152,7 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
                 result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
                                                                                                         -len(':0')]
         except TypeError:
-            time.sleep(240)
+            time.sleep(300)
             primary_before = \
                 result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
                                                                                                         -len(':0')]
@@ -170,6 +170,10 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
     promote_data = json.dumps({'alias': alias, 'services': ['VALIDATOR']})
     promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
     promote_res = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, promote_req))
+    if promote_res['op'] != 'REPLY':
+        time.sleep(10)
+        promote_res = json.loads(
+            await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, promote_req))
     host = testinfra.get_host('docker://node'+primary_before)
     host.run('systemctl restart indy-node')
     assert promote_res['op'] == 'REPLY'
@@ -196,7 +200,7 @@ async def demote_and_promote_primary(get_default_trustee, pool_handler, wallet_h
                 result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
                                                                                                        -len(':0')]
         except TypeError:
-            time.sleep(240)
+            time.sleep(300)
             primary_after = \
                 result['result']['data']['Node_info']['Replicas_status'][name_after + ':0']['Primary'][len('Node'):
                                                                                                        -len(':0')]

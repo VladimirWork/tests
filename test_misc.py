@@ -199,15 +199,12 @@ async def test_new_role():
 
     req = await ledger.build_get_validator_info_request(trustee_did)
     res_t = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
-    print(res_t)
 
     req = await ledger.build_get_validator_info_request(steward_did)
     res_s = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, req))
-    print(res_s)
 
     req = await ledger.build_get_validator_info_request(did1)
     res_nm = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, did1, req))
-    print(res_nm)
 
     assert res_t.keys() == res_s.keys() == res_nm.keys()
 

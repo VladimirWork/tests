@@ -1,5 +1,4 @@
 import pytest
-from indy import did
 from utils import *
 
 
@@ -25,7 +24,7 @@ async def test_misc_roles(pool_handler, wallet_handler, get_default_trustee):
                             '')
     assert res3['op'] == 'REPLY'
 
-    # New Steward adds TA2
+    # New Steward try to add TA2
     res4 = await nym_helper(pool_handler, wallet_handler, new_steward_did, anchor2_did, anchor2_vk, None,
                             'TRUST_ANCHOR')
     assert res4['op'] == 'REJECT'

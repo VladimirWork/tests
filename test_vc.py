@@ -1,10 +1,5 @@
 import pytest
-import time
-import logging
 from utils import *
-
-# logger = logging.getLogger(__name__)
-# logging.basicConfig(level=0, format='%(asctime)s %(message)s')
 
 
 @pytest.mark.asyncio

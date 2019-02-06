@@ -199,10 +199,10 @@ def run_in_event_loop(async_func):
 
 
 async def send_and_get_nym(pool_handle, wallet_handle, trustee_did, some_did):
-    add_before = await nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
-    assert add_before['op'] == 'REPLY'
-    get_before = await get_nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
-    assert get_before['result']['seqNo'] is not None
+    add = await nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
+    assert add['op'] == 'REPLY'
+    get = await get_nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
+    assert get['result']['seqNo'] is not None
 
 
 def check_ledger_sync():

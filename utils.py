@@ -394,7 +394,7 @@ async def demote_primary(pool_handle, wallet_handle, trustee_did):
     return primary_before, target_did, alias
 
 
-async def promote_primary(pool_handle, wallet_handle, trustee_did, primary_before, target_did, alias):
+async def promote_primary(pool_handle, wallet_handle, trustee_did, primary_before, alias, target_did):
     promote_data = json.dumps({'alias': alias, 'services': ['VALIDATOR']})
     promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
     promote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
@@ -466,5 +466,32 @@ async def get_primary():
     pass
 
 
-async def demote_random_node():
-    pass
+async def demote_node(pool_handle, wallet_handle, trustee_did):
+    req = await ledger.build_get_validator_info_request(trustee_did)
+    results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
+    try:
+        result = json.loads(sample(results.items(), 1)[0][1])
+    except JSONDecodeError:
+        try:
+            shuffle(list(results.keys()))
+            result = json.loads(sample(results.items(), 1)[0][1])
+        except JSONDecodeError:
+            shuffle(list(results.keys()))
+            result = json.loads(sample(results.items(), 1)[0][1])
+    alias = result['result']['data']['Node_info']['Name']
+    target_did = result['result']['data']['Node_info']['did']
+    demote_data = json.dumps({'alias': alias, 'services': []})
+    demote_req = await ledger.build_node_request(trustee_did, target_did, demote_data)
+    demote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, demote_req))
+    assert demote_res['op'] == 'REPLY'
+
+    return alias, target_did
+
+
+async def promote_node(pool_handle, wallet_handle, trustee_did, alias, target_did):
+    promote_data = json.dumps({'alias': alias, 'services': ['VALIDATOR']})
+    promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
+    promote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
+    host = testinfra.get_host('docker://node'+alias[4:])
+    host.run('systemctl restart indy-node')
+    assert promote_res['op'] == 'REPLY'

@@ -464,3 +464,7 @@ async def promote_primary(pool_handle, wallet_handle, trustee_did, primary_befor
 
 async def get_primary():
     pass
+
+
+async def demote_random_node():
+    pass

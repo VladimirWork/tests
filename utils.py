@@ -399,9 +399,10 @@ async def promote_primary(pool_handle, wallet_handle, trustee_did, primary_befor
     promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
     promote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
     if promote_res['op'] != 'REPLY':
-        time.sleep(30)
+        time.sleep(60)
         promote_res = json.loads(
             await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
+    print(promote_res)
     host = testinfra.get_host('docker://node'+primary_before)
     host.run('systemctl restart indy-node')
     assert promote_res['op'] == 'REPLY'

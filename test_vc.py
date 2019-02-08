@@ -30,9 +30,9 @@ async def test_vc_by_demotion(pool_handler, wallet_handler, get_default_trustee)
     await send_and_get_nym(pool_handler, wallet_handler, trustee_did, did1)
     primary_before, target_did, alias = await demote_primary(pool_handler, wallet_handler, trustee_did)
 
-    time.sleep(180)
+    time.sleep(120)
 
-    primary_after = await promote_primary(pool_handler, wallet_handler, trustee_did, primary_before, target_did, alias)
+    primary_after = await promote_primary(pool_handler, wallet_handler, trustee_did, primary_before, alias, target_did)
     await send_and_get_nym(pool_handler, wallet_handler, trustee_did, did2)
     time.sleep(20)
     check_ledger_sync()

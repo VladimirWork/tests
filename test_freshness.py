@@ -2,6 +2,10 @@ import pytest
 import time
 from indy import did, payment
 from utils import *
+import logging
+
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(level=0, format='%(asctime)s %(message)s')
 
 
 @pytest.mark.asyncio

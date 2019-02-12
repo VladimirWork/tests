@@ -8,6 +8,7 @@ import pytest
 async def test_libsovtoken_acceptance():
     await pool.set_protocol_version(2)
     await payment_initializer('libsovtoken.so', 'sovtoken_init')
+    # await payment_initializer('libnullpay.so', 'nullpay_init')
     pool_handle, _ = await pool_helper()
     wallet_handle, _, _ = await wallet_helper()
     payment_method = 'sov'
@@ -26,7 +27,7 @@ async def test_libsovtoken_acceptance():
     await nym_helper(pool_handle, wallet_handle, trustee_did1, trustee_did4, trustee_vk4, None, 'TRUSTEE')
 
     req = await payment.build_set_txn_fees_req(wallet_handle, trustee_did1, payment_method, json.dumps(
-        {'10001': 5, '102': 3, '101': 2, '1': 1, '100': 4, '113': 6, '114': 7}))
+        {'10001': 1, '102': 1, '101': 1, '1': 1, '100': 1, '113': 1, '114': 1}))
 
     req = await ledger.multi_sign_request(wallet_handle, trustee_did1, req)
     req = await ledger.multi_sign_request(wallet_handle, trustee_did2, req)
@@ -35,10 +36,12 @@ async def test_libsovtoken_acceptance():
 
     res2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
     print('\n', 'SET FEES:', res2)
+    assert res2['op'] == 'REPLY'
 
     req = await payment.build_get_txn_fees_req(wallet_handle, trustee_did1, payment_method)
     res3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
     print('\n', 'GET FEES:', res3)
+    assert res3['op'] == 'REPLY'
 
     address1 = await payment.create_payment_address(wallet_handle, payment_method, json.dumps(
         {"seed": str('0000000000000000000000000Wallet3')}))
@@ -48,13 +51,16 @@ async def test_libsovtoken_acceptance():
         {"seed": str('0000000000000000000000000Wallet5')}))
     address4 = await payment.create_payment_address(wallet_handle, payment_method, json.dumps(
         {"seed": str('0000000000000000000000000Wallet6')}))
+    address5 = await payment.create_payment_address(wallet_handle, payment_method, json.dumps(
+        {"seed": str('0000000000000000000000000Wallet7')}))
     print('\n', 'PAYMENT ADDRESSES:', await payment.list_payment_addresses(wallet_handle))
 
-    map1 = {"recipient": address1, "amount": 1}
-    map2 = {"recipient": address2, "amount": 2}
-    map3 = {"recipient": address3, "amount": 4}
-    map4 = {"recipient": address4, "amount": 3}
-    list1 = [map1, map2, map3, map4]
+    map1 = {"recipient": address1, "amount": 5}
+    map2 = {"recipient": address2, "amount": 1}
+    map3 = {"recipient": address3, "amount": 1}
+    map4 = {"recipient": address4, "amount": 4}
+    map5 = {"recipient": address5, "amount": 1}
+    list1 = [map1, map2, map3, map4, map5]
     req, _ = await payment.build_mint_req(wallet_handle, trustee_did1,
                                           json.dumps(list1), None)
 
@@ -70,84 +76,99 @@ async def test_libsovtoken_acceptance():
     res1 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
     source1 = await payment.parse_get_payment_sources_response(payment_method, res1)
     source1 = json.loads(source1)[0]['source']
-    print(source1)
-    l1 = list()
-    l1.append(source1)
+    l1 = [source1]
 
     req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did1, address2)
     res2 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
     source2 = await payment.parse_get_payment_sources_response(payment_method, res2)
     source2 = json.loads(source2)[0]['source']
-    l2 = list()
-    l2.append(source2)
+    l2 = [source2]
 
     req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did1, address3)
     res3 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
     source3 = await payment.parse_get_payment_sources_response(payment_method, res3)
     source3 = json.loads(source3)[0]['source']
-    l3 = list()
-    l3.append(source3)
+    l3 = [source3]
 
     req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did1, address4)
     res4 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
     source4 = await payment.parse_get_payment_sources_response(payment_method, res4)
     source4 = json.loads(source4)[0]['source']
-    l4 = list()
-    l4.append(source4)
+    l4 = [source4]
+
+    req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did1, address5)
+    res5 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
+    source5 = await payment.parse_get_payment_sources_response(payment_method, res5)
+    source5 = json.loads(source5)[0]['source']
+    l5 = [source5]
 
     # send schema, no tokens
-    _, res = await schema_helper(pool_handle, wallet_handle, trustee_did1, 'gvt', '1.0', json.dumps(["name", "age"]))
+    _, res = await schema_helper(pool_handle, wallet_handle, trustee_did1, random_string(5), '1.0',
+                                 json.dumps(["name", "age"]))
     assert res['op'] == 'REJECT'
 
     # send schema, enough tokens
     schema_id, schema_json = \
-        await anoncreds.issuer_create_schema(trustee_did1, 'gvt', '1.0', json.dumps(["name", "age"]))
+        await anoncreds.issuer_create_schema(trustee_did1, random_string(5), '1.0', json.dumps(["name", "age"]))
     req = await ledger.build_schema_request(trustee_did1, schema_json)
     req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l2), '[]', None)
-    res5 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json)
-    assert res5 is not None
+    res5 = json.loads(
+        await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json))
+    print(res5)
+    assert res5['op'] == 'REPLY'
 
     # get schema
     time.sleep(1)
     res6 = await get_schema_helper(pool_handle, wallet_handle, trustee_did1, schema_id)
-
-    # cred_def incorrect
+    assert res6['result']['seqNo'] is not None
     schema_id, schema_json = await ledger.parse_get_schema_response(json.dumps(res6))
+
     cred_def_id, cred_def_json = \
-        await anoncreds.issuer_create_and_store_credential_def(wallet_handle, trustee_did1, schema_json, 'TAG',
-                                                               'CL', json.dumps({'support_revocation': False}))
+        await anoncreds.issuer_create_and_store_credential_def(wallet_handle, trustee_did1, schema_json,
+                                                               random_string(5), 'CL',
+                                                               json.dumps({'support_revocation': False}))
+    # cred_def incorrect
     req = await ledger.build_cred_def_request(trustee_did1, cred_def_json)
-    req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l3), '[]', None)
-    res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
-    assert json.loads(res)['op'] == 'REJECT'
+    req_with_fees_json1, _ =\
+        await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l3), '[]', None)
+    res7 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
+    print('CRED DEF REQ WITHOUT FEES', res7)
+    assert res7['op'] == 'REJECT'
 
     # cred_def correct
-    req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l2), '[]', None)
-    res7 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
-    assert res7 is not None
+    req = await ledger.build_cred_def_request(trustee_did1, cred_def_json)
+    req_with_fees_json2, _ =\
+        await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l5), '[]', None)
+    res8 = json.loads(
+        await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json2))
+    print('CRED DEF REQ WITH FEES', res8)
+    assert res8['op'] == 'REPLY'
 
     # get cred def
-    res8 = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did1, cred_def_id)
-    assert res8 is not None
+    res9 = await get_cred_def_helper(pool_handle, wallet_handle, trustee_did1, cred_def_id)
+    assert res9['result']['seqNo'] is not None
 
     # send nym with fees
-    map5 = {"recipient": address1, "amount": 3}
-    l5 = [map5]
+    map8 = {"recipient": address1, "amount": 3}
+    l8 = [map8]
     req = await ledger.build_nym_request(trustee_did1, 'V4SGRU86Z58d6TV7PBU111', None, None, None)
-    req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l3),
-                                                           json.dumps(l5), None)
-    res9 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json)
-    assert res9 is not None
+    req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l4),
+                                                           json.dumps(l8), None)
+    res10 = json.loads(
+        await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json))
+    print(res10)
+    assert res10['op'] == 'REPLY'
 
     # rotate key with fees
-    map6 = {"recipient": address1, "amount": 2}
-    l6 = [map6]
-    res10 = await did.key_for_local_did(wallet_handle, trustee_did2)
+    map9 = {"recipient": address1, "amount": 4}
+    l9 = [map9]
+    res11 = await did.key_for_local_did(wallet_handle, trustee_did2)
     new_key = await did.replace_keys_start(wallet_handle, trustee_did2, json.dumps({}))
     req = await ledger.build_nym_request(trustee_did2, trustee_did2, new_key, None, None)
     req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l1),
-                                                           json.dumps(l6), None)
-    res = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json)
-    res = await did.replace_keys_apply(wallet_handle, trustee_did2)
-    res11 = await did.key_for_local_did(wallet_handle, trustee_did2)
-    assert res11 != res10
+                                                           json.dumps(l9), None)
+    await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json)
+    await did.replace_keys_apply(wallet_handle, trustee_did2)
+    res12 = await did.key_for_local_did(wallet_handle, trustee_did2)
+    print(res11, res12)
+    assert res12 != res11

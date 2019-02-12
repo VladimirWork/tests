@@ -1,4 +1,3 @@
-import time
 from utils import *
 from indy import pool, did, payment
 import pytest
@@ -27,8 +26,9 @@ async def test_libsovtoken_acceptance():
     await nym_helper(pool_handle, wallet_handle, trustee_did1, trustee_did3, trustee_vk3, None, 'TRUSTEE')
     await nym_helper(pool_handle, wallet_handle, trustee_did1, trustee_did4, trustee_vk4, None, 'TRUSTEE')
 
-    req = await payment.build_set_txn_fees_req(wallet_handle, trustee_did1, libsovtoken_payment_method, json.dumps(
-        {'10001': 1, '102': 1, '101': 1, '1': 1, '100': 1, '113': 1, '114': 1}))
+    fees = {'10001': 1, '102': 1, '101': 1, '1': 1, '100': 1, '113': 1, '114': 1}
+    req = await payment.build_set_txn_fees_req(wallet_handle, trustee_did1, libsovtoken_payment_method,
+                                               json.dumps(fees))
 
     req = await ledger.multi_sign_request(wallet_handle, trustee_did1, req)
     req = await ledger.multi_sign_request(wallet_handle, trustee_did2, req)
@@ -36,13 +36,11 @@ async def test_libsovtoken_acceptance():
     req = await ledger.multi_sign_request(wallet_handle, trustee_did4, req)
 
     res2 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
-    print('\n', 'SET FEES:', res2)
     assert res2['op'] == 'REPLY'
 
     req = await payment.build_get_txn_fees_req(wallet_handle, trustee_did1, libsovtoken_payment_method)
     res3 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
-    print('\n', 'GET FEES:', res3)
-    assert res3['op'] == 'REPLY'
+    assert res3['result']['fees'] == fees
 
     address1 = await payment.create_payment_address(wallet_handle, libsovtoken_payment_method, json.dumps(
         {"seed": str('0000000000000000000000000Wallet3')}))
@@ -54,7 +52,6 @@ async def test_libsovtoken_acceptance():
         {"seed": str('0000000000000000000000000Wallet6')}))
     address5 = await payment.create_payment_address(wallet_handle, libsovtoken_payment_method, json.dumps(
         {"seed": str('0000000000000000000000000Wallet7')}))
-    print('\n', 'PAYMENT ADDRESSES:', await payment.list_payment_addresses(wallet_handle))
 
     map1 = {"recipient": address1, "amount": 5}
     map2 = {"recipient": address2, "amount": 1}
@@ -71,7 +68,7 @@ async def test_libsovtoken_acceptance():
     req = await ledger.multi_sign_request(wallet_handle, trustee_did4, req)
 
     res0 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
-    print('\n', 'MINTING:', res0)
+    assert res0['op'] == 'REPLY'
 
     req, _ = await payment.build_get_payment_sources_request(wallet_handle, trustee_did1, address1)
     res1 = await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req)
@@ -115,7 +112,6 @@ async def test_libsovtoken_acceptance():
     req_with_fees_json, _ = await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l2), '[]', None)
     res5 = json.loads(
         await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json))
-    print(res5)
     assert res5['op'] == 'REPLY'
 
     # get schema
@@ -133,7 +129,6 @@ async def test_libsovtoken_acceptance():
     req_with_fees_json1, _ =\
         await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l3), '[]', None)
     res7 = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req))
-    print('CRED DEF REQ WITHOUT FEES', res7)
     assert res7['op'] == 'REJECT'
 
     # cred_def correct
@@ -142,7 +137,6 @@ async def test_libsovtoken_acceptance():
         await payment.add_request_fees(wallet_handle, trustee_did1, req, json.dumps(l5), '[]', None)
     res8 = json.loads(
         await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json2))
-    print('CRED DEF REQ WITH FEES', res8)
     assert res8['op'] == 'REPLY'
 
     # get cred def
@@ -157,7 +151,6 @@ async def test_libsovtoken_acceptance():
                                                            json.dumps(l8), None)
     res10 = json.loads(
         await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did1, req_with_fees_json))
-    print(res10)
     assert res10['op'] == 'REPLY'
 
     # rotate key with fees
@@ -170,12 +163,9 @@ async def test_libsovtoken_acceptance():
                                                            json.dumps(l9), None)
     res_ = json.loads(
         await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did2, req_with_fees_json))
-    print('\nSIGN AND SUBMIT ROTATION RESULT\n', res_)
     assert res_['op'] == 'REPLY'
     res__ = await did.replace_keys_apply(wallet_handle, trustee_did2)
-    print('\nAPPLY ROTATION RESULT\n', res__)
     assert res__ is None
     res12 = await did.key_for_local_did(wallet_handle, trustee_did2)
-    print(res11, res12, new_key)
     assert res12 != res11
     assert res12 == new_key

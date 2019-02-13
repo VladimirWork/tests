@@ -5,6 +5,7 @@ from indy import *
 from indy.error import IndyError
 from utils import *
 import testinfra
+import subprocess
 import numpy as np
 from random import randrange as rr
 from random import sample
@@ -332,11 +333,14 @@ async def test_misc_temp(docker_setup_and_teardown, pool_handler, wallet_handler
     # INDY-1933
     trustee_did, _ = get_default_trustee
     await send_and_get_nym(pool_handler, wallet_handler, trustee_did, random_did_and_json()[0])
-    hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(2, 4)]
-    outputs = [host.run('stress -c 1 -i 1 -m 1') for host in hosts]
+    nodes = ['node2', 'node3']
+    outputs = [subprocess.check_call(['docker', 'exec', '-d', node, 'stress', '-c', '1', '-i', '1', '-m', '1'])
+               for node in nodes]
     print(outputs)
     for i in range(200):
         await nym_helper(pool_handler, wallet_handler, trustee_did, random_did_and_json()[0], None, None, None)
     req = await ledger.build_get_validator_info_request(trustee_did)
     results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
-    print(results)
+    dict_results = {key: json.loads(results[key]) for key in results}
+    print(dict_results)
+    assert all([dict_results[key]['op'] == 'REPLY' for key in dict_results])

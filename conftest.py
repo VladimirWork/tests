@@ -36,19 +36,26 @@ async def docker_setup_and_teardown():
     os.chdir('/home/indy/indy-node/environment/docker/pool')
     containers = subprocess.check_output(['docker', 'ps', '-a', '-q']).decode().strip().split()
     outputs = [subprocess.check_call(['docker', 'rm', container, '-f']) for container in containers]
-    images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
-    try:
-        outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
-    except CalledProcessError:
-        pass
+    assert outputs is not None
+    # images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
+    # try:
+    #     outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
+    #     assert outputs is not None
+    # except CalledProcessError:
+    #     pass
     pool_start_result = subprocess.check_output(['./pool_start.sh', '7']).decode().strip()
-    print(pool_start_result)
+    assert pool_start_result.find('Pool started') is not -1
+    time.sleep(15)
+
     await yield_()
+
     containers = subprocess.check_output(['docker', 'ps', '-a', '-q']).decode().strip().split()
     outputs = [subprocess.check_call(['docker', 'rm', container, '-f']) for container in containers]
-    images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
-    try:
-        outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
-    except CalledProcessError:
-        pass
+    assert outputs is not None
+    # images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
+    # try:
+    #     outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
+    #     assert outputs is not None
+    # except CalledProcessError:
+    #     pass
     os.chdir('/home/indy')

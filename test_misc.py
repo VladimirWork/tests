@@ -328,5 +328,15 @@ async def test_misc_permission_error_messages(pool_handler, wallet_handler, get_
 
 
 @pytest.mark.asyncio
-async def test_misc_temp():
-    pass
+async def test_misc_temp(docker_setup_and_teardown, pool_handler, wallet_handler, get_default_trustee):
+    # INDY-1933
+    trustee_did, _ = get_default_trustee
+    await send_and_get_nym(pool_handler, wallet_handler, trustee_did, random_did_and_json()[0])
+    hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(2, 4)]
+    outputs = [host.run('stress -c 1 -i 1 -m 1') for host in hosts]
+    print(outputs)
+    for i in range(200):
+        await nym_helper(pool_handler, wallet_handler, trustee_did, random_did_and_json()[0], None, None, None)
+    req = await ledger.build_get_validator_info_request(trustee_did)
+    results = json.loads(await ledger.sign_and_submit_request(pool_handler, wallet_handler, trustee_did, req))
+    print(results)

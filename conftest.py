@@ -3,9 +3,9 @@ import testinfra
 from utils import *
 from indy import *
 from async_generator import yield_, async_generator
-import time
-from random import sample, shuffle
-from json import JSONDecodeError
+import os
+import subprocess
+from subprocess import CalledProcessError
 
 
 @pytest.fixture()
@@ -28,3 +28,27 @@ async def wallet_handler():
 async def get_default_trustee(wallet_handler):
     trustee_did, trustee_vk = await default_trustee(wallet_handler)
     await yield_((trustee_did, trustee_vk))
+
+
+@pytest.fixture()
+@async_generator
+async def docker_setup_and_teardown():
+    os.chdir('/home/indy/indy-node/environment/docker/pool')
+    containers = subprocess.check_output(['docker', 'ps', '-a', '-q']).decode().strip().split()
+    outputs = [subprocess.check_call(['docker', 'rm', container, '-f']) for container in containers]
+    images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
+    try:
+        outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
+    except CalledProcessError:
+        pass
+    pool_start_result = subprocess.check_output(['./pool_start.sh', '7']).decode().strip()
+    print(pool_start_result)
+    await yield_()
+    containers = subprocess.check_output(['docker', 'ps', '-a', '-q']).decode().strip().split()
+    outputs = [subprocess.check_call(['docker', 'rm', container, '-f']) for container in containers]
+    images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
+    try:
+        outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
+    except CalledProcessError:
+        pass
+    os.chdir('/home/indy')

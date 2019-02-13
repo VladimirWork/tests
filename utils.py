@@ -31,7 +31,7 @@ def random_seed_and_json():
         json.dumps({'seed': base58.b58encode(random_string(23)).decode()})
 
 
-async def pool_helper(pool_name=None, path_to_genesis='./docker_genesis', node_list=None):
+async def pool_helper(pool_name=None, path_to_genesis='/home/indy/docker_genesis', node_list=None):
     if not pool_name:
         pool_name = random_string(25)
     if node_list:
@@ -201,6 +201,7 @@ def run_in_event_loop(async_func):
 async def send_and_get_nym(pool_handle, wallet_handle, trustee_did, some_did):
     add = await nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
     assert add['op'] == 'REPLY'
+    time.sleep(1)
     get = await get_nym_helper(pool_handle, wallet_handle, trustee_did, some_did)
     assert get['result']['seqNo'] is not None
 

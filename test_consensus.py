@@ -40,7 +40,7 @@ async def test_consensus_restore_after_f_plus_one(docker_setup_and_teardown, poo
     # 5/7 online - can w+r
     outputs = [host.run('systemctl start indy-node') for host in hosts[3:5]]
     assert outputs
-    time.sleep(15)
+    time.sleep(30)
     await send_and_get_nym(pool_handler, wallet_handler, trustee_did, did3)
     # 7/7 online - can w+r
     outputs = [host.run('systemctl start indy-node') for host in hosts[-2:]]
@@ -69,7 +69,7 @@ async def test_consensus_state_proof_reading(docker_setup_and_teardown, pool_han
     # Start all
     outputs = [host.run('systemctl start indy-node') for host in hosts]
     assert outputs
-    time.sleep(15)
+    time.sleep(30)
     await send_and_get_nym(pool_handler, wallet_handler, trustee_did, did2)
 
 
@@ -90,7 +90,7 @@ async def test_consensus_n_and_f_changing(docker_setup_and_teardown, pool_handle
         await nym_helper(pool_handler, wallet_handler, trustee_did, did1, None, None, None)
     outputs = [host.run('systemctl start indy-node') for host in temp_hosts[-2:]]
     assert outputs
-    time.sleep(15)
+    time.sleep(30)
     await promote_node(pool_handler, wallet_handler, trustee_did, alias, target_did)
     time.sleep(5)
     outputs = [host.run('systemctl stop indy-node') for host in hosts[-2:]]

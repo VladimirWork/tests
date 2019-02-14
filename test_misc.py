@@ -336,6 +336,8 @@ async def test_misc_temp(docker_setup_and_teardown, pool_handler, wallet_handler
     nodes = ['node2', 'node3']
     outputs = [subprocess.check_call(['docker', 'exec', '-d', node, 'stress', '-c', '1', '-i', '1', '-m', '1'])
                for node in nodes]
+    # hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(2, 4)]
+    # outputs = [host.run('stress -c 1 -i 1 -m 1 & disown') for host in hosts]
     print(outputs)
     for i in range(200):
         await nym_helper(pool_handler, wallet_handler, trustee_did, random_did_and_json()[0], None, None, None)

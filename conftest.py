@@ -1,5 +1,4 @@
 import pytest
-import testinfra
 from utils import *
 from indy import *
 from async_generator import yield_, async_generator
@@ -37,6 +36,7 @@ async def docker_setup_and_teardown():
     containers = subprocess.check_output(['docker', 'ps', '-a', '-q']).decode().strip().split()
     outputs = [subprocess.check_call(['docker', 'rm', container, '-f']) for container in containers]
     assert outputs is not None
+    # Uncomment to destroy all images too
     # images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
     # try:
     #     outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]
@@ -52,6 +52,7 @@ async def docker_setup_and_teardown():
     containers = subprocess.check_output(['docker', 'ps', '-a', '-q']).decode().strip().split()
     outputs = [subprocess.check_call(['docker', 'rm', container, '-f']) for container in containers]
     assert outputs is not None
+    # Uncomment to destroy all images too
     # images = subprocess.check_output(['docker', 'images', '-q']).decode().strip().split()
     # try:
     #     outputs = [subprocess.check_call(['docker', 'rmi', image, '-f']) for image in images]

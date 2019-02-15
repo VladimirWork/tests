@@ -4,10 +4,10 @@ import pandas as pd
 
 def get_latency(filename):
     data = pd.read_csv(filename, sep='|')
-    filtered = data[(data['client_sent'] != 0) & (data['label'] == 'get_nym')]
-    filtered['latency'] = filtered['client_reply'] - filtered['client_sent']
-    return np.mean(filtered['latency'])
+    data = data.loc[data['status'] == 'succ', :]
+    data['latency'] = data['client_reply'] - data['client_sent']
+    return np.mean(data['latency'])
 
 
 if __name__ == '__main__':
-    print(get_latency('/home/indy/total_reads2.csv'))
+    print(get_latency('/home/indy/total_reads10.csv'))

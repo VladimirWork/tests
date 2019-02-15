@@ -3,28 +3,18 @@ import pandas as pd
 
 
 def plot():
-    path1 = '/home/indy/1965_15_02_2019/node5.csv'
-    path2 = '/home/indy/1965_15_02_2019/node10.csv'
-    path3 = '/home/indy/1965_15_02_2019/node20.csv'
-    path4 = '/home/indy/1965_15_02_2019/node25.csv'
-
+    paths = ['/home/indy/1965_15_02_2019/node5.csv', '/home/indy/1965_15_02_2019/node10.csv',
+             '/home/indy/1965_15_02_2019/node20.csv', '/home/indy/1965_15_02_2019/node25.csv']
+    titles = [path.split('/')[-1].replace('.csv', '') for path in paths]
+    cmap = 'cool'
     metrics = ['ordered_batch_size_per_sec', 'backup_ordered_batch_size_per_sec',
                'avg_monitor_avg_latency', 'avg_request_queue_size', 'avg_monitor_unordered_request_queue_size',
                'max_view_change_in_progress', 'max_current_view',
                'max_domain_ledger_size', 'timestamp']
-
     # metrics = ['max_view_change_in_progress', 'max_current_view',
     #            'max_domain_ledger_size', 'timestamp']
-
-    pd.read_csv(path1).loc[:, metrics].plot\
-        (x='timestamp', subplots=True, cmap='cool', title='Node 1', figsize=(9, 4))
-    pd.read_csv(path2).loc[:, metrics].plot\
-        (x='timestamp', subplots=True, cmap='jet', title='Node 10', figsize=(9, 4))
-    pd.read_csv(path3).loc[:, metrics].plot\
-        (x='timestamp', subplots=True, cmap='rainbow', title='Node 20', figsize=(9, 4))
-    pd.read_csv(path4).loc[:, metrics].plot\
-        (x='timestamp', subplots=True, cmap='gist_rainbow', title='Node 25', figsize=(9, 4))
-
+    for path, title in zip(paths, titles):
+        pd.read_csv(path).loc[:, metrics].plot(x='timestamp', subplots=True, cmap=cmap, title=title, figsize=(9.5, 4.5))
     plt.show()
 
 

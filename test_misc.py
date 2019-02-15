@@ -155,8 +155,8 @@ async def test_misc_stn_slowness():
     print('SCHEMA_SUBMIT_AVG', np.average(schema_timings))
     print('CRED_DEF_SUBMIT_AVG', np.average(cred_def_timings))
 
-    assert np.average(schema_timings) < 1.5
-    assert np.average(cred_def_timings) < 0.5
+    assert np.mean(schema_timings) < 1.5
+    assert np.mean(cred_def_timings) < 0.5
 
 
 @pytest.mark.asyncio

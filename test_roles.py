@@ -5,7 +5,12 @@ from utils import *
 @pytest.mark.asyncio
 async def test_roles(pool_handler, wallet_handler, get_default_trustee):
     trustee_did, _ = get_default_trustee
+    new_trustee_did, new_trustee_vk = await did.create_and_store_my_did(wallet_handler, '{}')
     new_steward_did, new_steward_vk = await did.create_and_store_my_did(wallet_handler, '{}')
+    new_trust_anchor_did, new_trust_anchor_vk = await did.create_and_store_my_did(wallet_handler, '{}')
+    new_identity_did, new_identity_vk = await did.create_and_store_my_did(wallet_handler, '{}')
+    steward1_did, steward1_vk = await did.create_and_store_my_did(wallet_handler, '{}')
+    steward2_did, steward2_vk = await did.create_and_store_my_did(wallet_handler, '{}')
     anchor1_did, anchor1_vk = await did.create_and_store_my_did(wallet_handler, '{}')
     anchor2_did, anchor2_vk = await did.create_and_store_my_did(wallet_handler, '{}')
 

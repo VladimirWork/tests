@@ -36,7 +36,7 @@ async def test_roles(pool_handler, wallet_handler, get_default_trustee):
     res6 = await nym_helper(pool_handler, wallet_handler, trustee_did, trustee1_did, None, None, '')
     assert res6['op'] == 'REPLY'
     # Trustee1 tries to add Steward2 after demotion - should fail
-    res7 = await nym_helper(pool_handler, wallet_handler, trustee1_did, steward2_did, steward2_did, None, 'STEWARD')
+    res7 = await nym_helper(pool_handler, wallet_handler, trustee1_did, steward2_did, steward2_vk, None, 'STEWARD')
     assert res7['op'] == 'REJECT'
     # Trustee1 tries to demote Steward1 after demotion - should fail
     res8 = await nym_helper(pool_handler, wallet_handler, trustee1_did, steward1_did, None, None, '')
@@ -45,7 +45,7 @@ async def test_roles(pool_handler, wallet_handler, get_default_trustee):
     res9 = await nym_helper(pool_handler, wallet_handler, trustee_did, trustee1_did, None, None, 'TRUSTEE')
     assert res9['op'] == 'REPLY'
     # Trustee1 adds Steward2 after promotion
-    res10 = await nym_helper(pool_handler, wallet_handler, trustee1_did, steward2_did, steward2_did, None, 'STEWARD')
+    res10 = await nym_helper(pool_handler, wallet_handler, trustee1_did, steward2_did, steward2_vk, None, 'STEWARD')
     assert res10['op'] == 'REPLY'
 
     # <<< STEWARD cases >>>

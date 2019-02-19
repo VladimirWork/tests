@@ -108,7 +108,7 @@ async def test_pool_upgrade_positive():
     # os.chdir('/home/indy/indy-node-tests/pool_automation/auto/.ssh/')
     version_outputs = [host.run('dpkg -l | grep {}'.format(package)) for host in docker_4_hosts]
     print(version_outputs)
-    status_outputs = [host.run('systemctl status indy-node-tests') for host in docker_4_hosts]
+    status_outputs = [host.run('systemctl status indy-node') for host in docker_4_hosts]
     print(status_outputs)
     # os.chdir('/home/indy/PycharmProjects/tests')
     version_checks = [output.stdout.find(version) for output in version_outputs]

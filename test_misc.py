@@ -96,7 +96,7 @@ async def test_misc_state_proof():
                                               None, json.dumps({'support_revocation': True}))
     hosts = [testinfra.get_host('docker://node' + str(i)) for i in range(1, 5)]
     print(hosts)
-    outputs0 = [host.run('systemctl stop indy-node') for host in hosts[:-1]]
+    outputs0 = [host.run('systemctl stop indy-node-tests') for host in hosts[:-1]]
     print(outputs0)
 
     time.sleep(1)
@@ -110,7 +110,7 @@ async def test_misc_state_proof():
         req3 = await ledger.build_get_cred_def_request(None, cred_def_id)
         res3 = json.loads(await ledger.submit_request(pool_handle, req3))
     finally:
-        outputs1 = [host.run('systemctl start indy-node') for host in hosts[:-1]]
+        outputs1 = [host.run('systemctl start indy-node-tests') for host in hosts[:-1]]
         print(outputs1)
 
     assert res1['result']['seqNo'] is not None

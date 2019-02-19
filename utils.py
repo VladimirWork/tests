@@ -268,7 +268,7 @@ async def stop_primary(pool_handle, wallet_handle, trustee_did):
                 result['result']['data']['Node_info']['Replicas_status'][name_before + ':0']['Primary'][len('Node'):
                                                                                                         -len(':0')]
     host = testinfra.get_host('docker://node'+primary_before)
-    host.run('systemctl stop indy-node')
+    host.run('systemctl stop indy-node-tests')
     print('\nPRIMARY NODE {} HAS BEEN STOPPED!'.format(primary_before))
 
     return primary_before
@@ -276,7 +276,7 @@ async def stop_primary(pool_handle, wallet_handle, trustee_did):
 
 async def start_primary(pool_handle, wallet_handle, trustee_did, primary_before):
     host = testinfra.get_host('docker://node'+primary_before)
-    host.run('systemctl start indy-node')
+    host.run('systemctl start indy-node-tests')
     try:
         req = await ledger.build_get_validator_info_request(trustee_did)
         results = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, req))
@@ -407,7 +407,7 @@ async def promote_primary(pool_handle, wallet_handle, trustee_did, primary_befor
             await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
     print(promote_res)
     host = testinfra.get_host('docker://node'+primary_before)
-    host.run('systemctl restart indy-node')
+    host.run('systemctl restart indy-node-tests')
     assert promote_res['op'] == 'REPLY'
     print('\nEX-PRIMARY NODE HAS BEEN PROMOTED AND RESTARTED!')
 
@@ -497,5 +497,5 @@ async def promote_node(pool_handle, wallet_handle, trustee_did, alias, target_di
     promote_req = await ledger.build_node_request(trustee_did, target_did, promote_data)
     promote_res = json.loads(await ledger.sign_and_submit_request(pool_handle, wallet_handle, trustee_did, promote_req))
     host = testinfra.get_host('docker://node'+alias[4:])
-    host.run('systemctl restart indy-node')
+    host.run('systemctl restart indy-node-tests')
     assert promote_res['op'] == 'REPLY'

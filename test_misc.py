@@ -62,10 +62,11 @@ async def test_misc_get_nonexistent():
         await ledger.parse_get_revoc_reg_delta_response(res5)
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_misc_wallet():
-    await wallet_helper('cba', 'cba')
+    wallet_handle, _, _ = await wallet_helper('abc', 'abc', 'ARGON2I_MOD')
+    await did.create_and_store_my_did(wallet_handle, json.dumps({'seed': '000000000000000000000000Trustee1'}))
 
 
 @pytest.mark.skip

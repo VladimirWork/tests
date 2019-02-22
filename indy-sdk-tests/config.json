@@ -9,5 +9,5 @@
   "institution_name": "Faber",
   "institution_logo_url": "http://robohash.org/234",
   "institution_did": "V4SGRU86Z58d6TV7PBUe6f",
-  "genesis_path": "./docker_genesis"
+  "genesis_path": "../docker_genesis"
 }
